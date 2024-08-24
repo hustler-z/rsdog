@@ -1,92 +1,165 @@
-OUT=target/riscv64imac-unknown-none-elf/release
+# Path
+# please make a rootfs image by yourself
+DISK = vm0.img
 
-################################################################################
-#                               COMPILE BINARIES                               #
-################################################################################
+# Compile
+ARCH ?= aarch64
+PROFILE ?= release
+BOARD ?= tx2
+# features, seperate with comma `,`
+FEATURES ?=
 
-GUEST_KERNEL_FEATURE=$(if $(RVIRT_GUEST_KERNEL), --features embed_guest_kernel, )
+# Toolchain
+ifeq ($(ARCH), aarch64)
+	CROSS_COMPILE := aarch64-none-elf-
+	TEXT_START := 0x40080000
+	VM0_IMAGE_PATH := "./image/Image_vanilla"
+else ifeq ($(ARCH), riscv64)
+	CROSS_COMPILE := riscv64-linux-gnu-
+	TEXT_START := 0x80200000
+	VM0_IMAGE_PATH := "./image/Image_5.15.100-riscv-starfive"
+else
+$(error bad arch: $(ARCH))
+endif
 
-# Build the main rvirt binary. Relies on an SBI inteface for some functionality.
-$(OUT)/rvirt: src/*.rs src/*/*.rs src/*.S Cargo.toml src/slinker.ld rustup-target
-	cargo rustc --release --target riscv64imac-unknown-none-elf --bin rvirt \
-	    $(GUEST_KERNEL_FEATURE) -- -C link-arg=-Tsrc/slinker.ld
+QEMU := qemu-system-$(ARCH)
 
-# Flattened version of rvirt binary.
-$(OUT)/rvirt.bin: $(OUT)/rvirt
-	objcopy -S -I elf64-little -O binary --change-addresses -0x80000000 \
-	    --set-section-flags .bss=alloc,load,contents \
-	    $(OUT)/rvirt $(OUT)/rvirt.bin
+GDB = ${CROSS_COMPILE}gdb
+OBJDUMP = ${CROSS_COMPILE}objdump
+OBJCOPY = ${CROSS_COMPILE}objcopy
+LD = ${CROSS_COMPILE}ld
 
-# Build a free standing binary that can run directly on bare metal without any
-# SBI provider.
-$(OUT)/rvirt-bare-metal: $(OUT)/rvirt.bin src/*.rs src/*/*.rs src/*.S Cargo.toml src/mlinker.ld rustup-target
-	PAYLOAD=$(OUT)/rvirt.bin cargo rustc --release --target \
-	    riscv64imac-unknown-none-elf --bin rvirt-bare-metal --features \
-	    "physical_symbol_addresses" -- -C link-arg=-Tsrc/mlinker.ld
+GIC_VERSION ?= 2
 
-# Flattened version of rvirt-bare-metal binary.
-$(OUT)/rvirt-bare-metal.bin: $(OUT)/rvirt-bare-metal
-	objcopy -S -I elf64-little -O binary --change-addresses -0x80000000 \
-	    $(OUT)/rvirt-bare-metal $(OUT)/rvirt-bare-metal.bin
+ifeq ($(GIC_VERSION),3)
+override FEATURES += ,gicv3,
+else ifneq ($(GIC_VERSION),2)
+$(error Bad gic version)
+endif
 
-################################################################################
-#                              QEMU RUN COMMANDS                               #
-################################################################################
+TEXT_START ?= 0x83000000
+VM0_IMAGE_PATH ?= "./image/L4T"
 
-# Run rvirt inside QEMU.
-qemu: $(OUT)/rvirt-bare-metal
-	qemu-system-riscv64 -machine virt -nographic -m 2G -smp 1 $(GDBOPTS) \
-	    -kernel $(OUT)/rvirt-bare-metal -initrd fedora-vmlinux \
-	    -append "console=ttyS0 ro root=/dev/vda" \
-	    -object rng-random,filename=/dev/urandom,id=rng1 \
-	    -device virtio-rng-device,rng=rng1,bus=virtio-mmio-bus.0 \
-	    -device virtio-blk-device,drive=hd1,bus=virtio-mmio-bus.1 \
-	    -drive file=stage4-disk.img,format=raw,id=hd1 \
-	    -device virtio-net-device,netdev=usernet1,bus=virtio-mmio-bus.2 \
-	    -netdev user,id=usernet1,hostfwd=tcp::10001-:22
+RELOCATE_IMAGE=librust_shyper.a
+IMAGE=rust_shyper
 
-# Run rvirt inside QEMU with BBL as the SBI provider. Requires a build of QEMU
-# with support for the `-bios` flag which mainline QEMU doesn't yet have.
-qemu-bbl: $(OUT)/rvirt.bin
-	qemu-system-riscv64 -machine virt -nographic -m 2G -smp 1 \
-	    -bios bbl -kernel $(OUT)/rvirt.bin -initrd fedora-vmlinux \
-	    -append "console=ttyS0 root=/dev/vda2" \
-	    -object rng-random,filename=/dev/urandom,id=rng1 \
-	    -device virtio-rng-device,rng=rng1,bus=virtio-mmio-bus.0 \
-	    -device virtio-blk-device,drive=hd1,bus=virtio-mmio-bus.1 \
-	    -drive file=img01.qcow2,format=qcow2,id=hd1 \
-	    -device virtio-net-device,netdev=usernet1,bus=virtio-mmio-bus.2 \
-	    -netdev user,id=usernet1,hostfwd=tcp::10001-:22
+TARGET_DIR=target/${ARCH}/${PROFILE}
 
-# Run rvirt inside QEMU but target the sifive_u machine type.
-qemu-sifive: $(OUT)/rvirt-bare-metal
-	qemu-system-riscv64 -machine sifive_u -nographic -m 2G \
-	    -kernel $(OUT)/rvirt-bare-metal
+ifeq (${ARCH}, aarch64)
+QEMU_COMMON_OPTIONS = -machine virt,virtualization=on,gic-version=$(GIC_VERSION)\
+	-m 8g -cpu cortex-a57 -smp 4 -display none -global virtio-mmio.force-legacy=false\
+	-kernel ${TARGET_DIR}/${IMAGE}.bin
+QEMU_NETWORK_OPTIONS = -netdev user,id=n0,hostfwd=tcp::5555-:22 -device virtio-net-device,bus=virtio-mmio-bus.24,netdev=n0
+QEMU_DISK_OPTIONS = -drive file=${DISK},if=none,format=raw,id=x0 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.25
+MKIMAGE_ARCH = arm64
+else ifeq (${ARCH}, riscv64)
+# -global virtio-mmio.force-legacy=false option for disable legacy，i.e. using the latest virtio version
+QEMU_COMMON_OPTIONS = -machine virt\
+	-m 8g -smp 4 -display none -bios default \
+	-kernel ${TARGET_DIR}/${IMAGE}.bin
+QEMU_NETWORK_OPTIONS = -netdev user,id=n0,hostfwd=tcp::5555-:22 -device virtio-net-device,netdev=n0
+QEMU_DISK_OPTIONS = -drive file=${DISK},if=none,format=raw,id=x0 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+MKIMAGE_ARCH = riscv
+FEATURES += ,sbi_legacy,
+else
+$(error bad qemu arch: $(ARCH))
+endif
 
-# Run rvirt inside QEMU but wait for GDB to attach on port 26000 first.
-GDBOPTS=$(if $(DEBUG),-gdb tcp::26000 -S,)
-qemu-gdb: DEBUG=1
-qemu-gdb: qemu
+# Use target_cfg depending on ARCH
+TARGET_CFG := $(CURDIR)/cfg/${ARCH}.json
 
-################################################################################
-#                          HIFIVE UNLEASHED COMMANDS                           #
-################################################################################
+# Combine board(tx2, qemu, pi4, ...) with previous features as cargo's features
+CARGO_FLAGS ?= -Z build-std=core,alloc -Zbuild-std-features=compiler-builtins-mem --target ${TARGET_CFG} --no-default-features --features "${BOARD},${FEATURES}"
+ifeq (${PROFILE}, release)
+CARGO_FLAGS := ${CARGO_FLAGS} --release
+endif
 
-# Prepare a `.fit` file and place it in /srv/tftp so the HiFive Unleashed can
-# boot from it. Requires atftpd with target directory set to /srv/tftp/.
-fit: $(OUT)/rvirt-bare-metal.bin uboot-fit-image.its
-	mkimage -f uboot-fit-image.its -A riscv -O linux -T flat_dt $(OUT)/rvirt.fit
-	cp $(OUT)/rvirt.fit /srv/tftp/hifiveu.fit
+# Make 'cc' crate in dependencies cross compiles properly.
+CFLAGS += -fno-stack-protector
 
-# Display serial output from the HiFive Unleashed. To get line endings to be
-# correct, follow steps described on:
-# https://unix.stackexchange.com/questions/283924/how-can-minicom-permanently-translate-incoming-newline-n-to-crlf
-serial-output:
-	sudo minicom -D /dev/serial/by-id/usb-FTDI_Dual_RS232-HS-if01-port0
+ifeq ($(ARCH), aarch64)
+	CFLAGS += -mgeneral-regs-only
+else ifeq ($(ARCH), riscv64)
+	export CRATE_CC_NO_DEFAULTS := true
+	CFLAGS += -ffunction-sections -fdata-sections \
+		  -fPIC -fno-omit-frame-pointer -mabi=lp64 -mcmodel=medany -march=rv64ima \
+		  -ffreestanding
+endif
 
-################################################################################
-#                                MISC COMMANDS                                 #
-################################################################################
+export BOARD CROSS_COMPILE CFLAGS
 
-rustup-target:
-	rustup target add riscv64imac-unknown-none-elf || true
+CARGO_ACTION ?= build
+
+TFTP_SERVER ?= root@192.168.106.153:/tftp
+
+UBOOT_IMAGE ?= Image$(USER)_$(ARCH)_$(BOARD)
+
+.PHONY: build doc cargo upload qemu rk3588 tx2 pi4 tx2_update tx2_ramdisk gdb clean clippy
+
+build: cargo
+	bash linkimg.sh -i ${TARGET_DIR}/${RELOCATE_IMAGE} -m ${VM0_IMAGE_PATH} \
+		-t ${LD} -f linkers/${ARCH}.ld -s ${TEXT_START} -o ${TARGET_DIR}/${IMAGE}
+	${OBJDUMP} --demangle -d ${TARGET_DIR}/${IMAGE} > ${TARGET_DIR}/t.txt
+	${OBJCOPY} ${TARGET_DIR}/${IMAGE} -O binary ${TARGET_DIR}/${IMAGE}.bin
+
+cargo:
+	cargo ${CARGO_ACTION} ${CARGO_FLAGS}
+
+# TODO: fix the mkimage ARCH because it only accept "arm64" and "AArch64" for aarch64
+upload: build
+	@mkimage -n ${IMAGE} -A ${MKIMAGE_ARCH} -O linux -T kernel -C none -a $(TEXT_START) -e $(TEXT_START) -d ${TARGET_DIR}/${IMAGE}.bin ${TARGET_DIR}/${UBOOT_IMAGE}
+	@echo "*** Upload Image ${UBOOT_IMAGE} ***"
+	@scp ${TARGET_DIR}/${UBOOT_IMAGE} ${TFTP_SERVER}/${UBOOT_IMAGE}
+
+qemu:
+	$(MAKE) build BOARD=qemu TEXT_START=${TEXT_START} VM0_IMAGE_PATH=${VM0_IMAGE_PATH}
+	${OBJCOPY} ${TARGET_DIR}/${IMAGE} -O binary ${TARGET_DIR}/${IMAGE}.bin
+
+qemu_uboot:
+	$(MAKE) upload BOARD=qemu TEXT_START=0x80200000 VM0_IMAGE_PATH="./image/Image_vanilla"
+
+rk3588:
+	$(MAKE) upload BOARD=rk3588 TEXT_START=0x00480000 VM0_IMAGE_PATH="./image/Image-5.10.160"
+
+tx2:
+	$(MAKE) upload BOARD=tx2 TEXT_START=0x83000000 VM0_IMAGE_PATH="./image/L4T"
+
+tx2_ramdisk:
+	$(MAKE) upload BOARD=tx2 FEATURES=ramdisk TEXT_START=0x83000000 VM0_IMAGE_PATH="./image/L4T"
+
+pi4:
+	$(MAKE) upload BOARD=pi4 TEXT_START=0xf0080000 VM0_IMAGE_PATH="./image/Image_pi4_5.4.83_tlb"
+
+
+QEMU_SERIAL_OPTIONS = -serial mon:stdio #\
+	-serial telnet:localhost:12345,server
+
+# QEMU_NETWORK_OPTIONS = -netdev tap,id=tap0,ifname=tap0,script=no,downscript=no -device virtio-net-device,bus=virtio-mmio-bus.24,netdev=tap0
+#/home/cwm/c-hyper/syberx-hypervisor/build/shyper_qemuv3.bin
+
+
+run: qemu
+	${QEMU} ${QEMU_COMMON_OPTIONS} ${QEMU_SERIAL_OPTIONS} ${QEMU_NETWORK_OPTIONS} ${QEMU_DISK_OPTIONS}
+
+debug: qemu
+	${QEMU} ${QEMU_COMMON_OPTIONS} ${QEMU_SERIAL_OPTIONS} ${QEMU_NETWORK_OPTIONS} ${QEMU_DISK_OPTIONS} \
+		-s -S
+
+gdb:
+	${GDB} -x gdb/$(ARCH).gdb
+
+# target remote localhost:1234
+gdb-connect:
+	echo "symbol-file ${TARGET_DIR}/${IMAGE}" > .gdbinit
+	echo "target remote localhost:1234" >> .gdbinit
+	gdb-multiarch -command=.gdbinit
+
+
+clean:
+	cargo clean
+
+clippy: CARGO_ACTION = clippy
+clippy: cargo
+
+doc:
+	$(MAKE) cargo CARGO_ACTION=doc FEATURES="doc,$(FEATURES)"

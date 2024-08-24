@@ -1,122 +1,229 @@
+// Copyright (c) 2023 Beihang University, Huawei Technologies Co.,Ltd. All rights reserved.
+// Rust-Shyper is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
 
-//! ## Start-up sequence summary:
-//! - QEMU loads hypervisor kernel (this program) and linux kernel (held in initrd) into memory
-//! - QEMU launches hardcoded mrom reset vector, which jumps to 0x80000000
-//! - _start is located at 0x80000000 as the only function in the .init.entrypoint section
-//! - `_start` sets up the stack and calls into mstart
-//! - `mstart` initializes machine-mode control registers as needed by the hypervisor
-//! - `mstart` returns into supervisor-mode in sstart
-//! - `sstart` returns into user-mode at the guest kernel entrypoint
-//!       (running in emulated-supervisor-mode)
-//!
-//! ## Physical memory layout according to machine-mode
-//!   (see also linker.ld, pmap.rs, qemu riscv/virt.c @ 4717595)
-//!   note: although only 36 bits are described here, the address space is wider.
-//! ```text
-//!  START      - END         REGION
-//!  0x        0 - 0x      100  QEMU VIRT_DEBUG
-//!  0x      100 - 0x     1000  unmapped
-//!  0x     1000 - 0x    12000  QEMU MROM (includes hard-coded reset vector; device tree)
-//!  0x    12000 - 0x   100000  unmapped
-//!  0x   100000 - 0x   101000  QEMU VIRT_TEST
-//!  0x   101000 - 0x  2000000  unmapped
-//!  0x  2000000 - 0x  2010000  QEMU VIRT_CLINT
-//!  0x  2010000 - 0x  3000000  unmapped
-//!  0x  3000000 - 0x  3010000  QEMU VIRT_PCIE_PIO
-//!  0x  3010000 - 0x  c000000  unmapped
-//!  0x  c000000 - 0x 10000000  QEMU VIRT_PLIC
-//!  0x 10000000 - 0x 10000100  QEMU VIRT_UART0
-//!  0x 10000100 - 0x 10001000  unmapped
-//!  0x 10001000 - 0x 10002000  QEMU VIRT_VIRTIO
-//!  0x 10002000 - 0x 30000000  unmapped
-//!  0x 30000000 - 0x 40000000  QEMU
-//!  0x 40000000 - 0x 80000000  QEMU VIRT_PCIE_MMIO
-//!  0x 80000000 - 0x 80200000  text segment
-//!  0x 80200000 - 0x 80400000  shared data
-//!  0x 80400000 - 0x 80600000  hart 0 data segment
-//!  0x 80600000 - 0x 80800000  hart 0 S-mode stack
-//!  0x 80800000 - 0x 80810000  hart 0 M-mode stack
-//!  0x 80810000 - 0x 80820000  hart 1 M-mode stack
-//!  0x 80820000 - 0x 80830000  hart 2 M-mode stack
-//!  0x 80830000 - 0x 80840000  hart 3 M-mode stack
-//!  0x 808xxxxx - 0x 808xxxxx  ...
-//!  0x 808f0000 - 0x 80900000  hart 15 M-mode stack
-//!  0x c0000000 - 0x c0200000  hart 1 stack
-//!  0x c0200000 - 0x c0400000  hart 1 data segment
-//!  0x c0400000 - 0x c4000000  hart 1 heap
-//!  0x c2000000 - 0x c4000000  hart 1 page tables
-//!  0x c4000000 - 0x100000000  hart 1 guest memory
-//!  0x100000000 - 0x100200000  hart 2 stack
-//!  0x100200000 - 0x100400000  hart 2 data segment
-//!  0x100400000 - 0x104000000  hart 2 heap
-//!  0x102000000 - 0x104000000  hart 2 page tables
-//!  0x104000000 - 0x140000000  hart 2 guest memory
-//!  0x140000000 - 0x140200000  hart 3 stack
-//!  0x140200000 - 0x140400000  hart 3 data segment
-//!  0x140400000 - 0x144000000  hart 3 heap
-//!  0x142000000 - 0x144000000  hart 3 page tables
-//!  0x144000000 - 0x180000000  hart 3 guest memory
-//! ```
-//!
-//! ## Initial supervisor virtual memory layout (boot page table)
-//!    note: the Sv39 addressing mode is in use here
-//! ```text
-//!  VIRTUAL START      - VIRTUAL END          PHYS START   PHYS END     MODE   REGION
-//!  0x        00000000 - 0x        40000000   0x00000000 - 0x40000000   RWX    QEMU memory sections
-//!  0x        80000000 - 0x        c0000000   0x80000000 - 0xC0000000   RWX    hypervisor memory
-//!  0xffffffffc0000000 - 0xffffffffffffffff   0x80000000 - 0xC0000000   RWX    hypervisor memory
-//! ```
-//!
-//! ## Linux address space layout (with Sv39 addressing)
-//!
-//! In this addressing mode, Linux does not reserve any address space for a hypervisor. However, the
-//! direct map region is 128GB (one quarter of the addres space) but physical memory takes up at
-//! most a handful of GBs and Linux never accesses any higher addresses. Thus rvirt is able to use
-//! the top 16GB of virtual addresses for its own code and data.
-//!
-//! ```text
-//!  VIRTUAL START      - VIRTUAL END          REGION
-//!  0x0000000000000000 - 0x0000003fffffffff   User memory
-//!  0xffffffbfffffffff - 0xffffffdfffffffff   Kernel memory
-//!  0xffffffdfffffffff - 0xffffffffffffffff   Direct map region
-//! ```
+//! Rust-Shyper is a type-1 hypervisor based on Rust. It now supports Aarch64 architecture.
+//! The introduces of all modules are showed below:
+//! * [arch]: The architecture-dependent code, including the code for the Aarch64 architecture.
+//! * [board]: The code for the specific board, including the code for the Raspberry Pi 4B, tx2 and so on.
+//! * [config]: The configuration file for the hypervisor.
+//! * [device]: The emulation of the devices, including virtio emulation.
+//! * [driver]: The driver for the devices, including gpio and uart.
+//! * [kernel]: The rust-shyper hypervisor kernel code, manages the virtual machines, interrupts, address translation, vcpu scheduling and so on.
+//! * [mm]: The memory management code, including the code for the page frame allocator and rust global allocator.
+//! * [utils]: The utility code, including the code for the barrier, bitmap and so on.
+//! * [vmm]: The virtual machine monitor code, including the code for virtual machine management such as creation, startup, shutdown and removal.
+//! * [macros]: Defines the macros for the hypervisor.
+//! * error: Defines the error type for the hypervisor.
+//! * panic: Defines the panic handler for the hypervisor.
 
 #![no_std]
-#![feature(asm)]
-#![feature(const_fn)]
-#![feature(const_raw_ptr_deref)]
-#![feature(global_asm)]
-#![feature(lang_items)]
-#![feature(linkage)]
+#![no_main]
+#![feature(core_intrinsics)]
+#![feature(alloc_error_handler)]
+#![feature(extract_if)]
+#![feature(inline_const)]
 #![feature(naked_functions)]
-#![feature(proc_macro_hygiene)]
-#![feature(ptr_offset_from)]
-#![feature(start)]
-#![feature(try_blocks)]
+#![feature(stdsimd)]
+// use hlv.w instr
+#![cfg_attr(target_arch = "riscv64", feature(riscv_ext_intrinsics))]
+#![feature(asm_const)]
+#![feature(error_in_core)]
+#![feature(slice_group_by)]
+#![feature(c_str_literals)]
+#![allow(unused_doc_comments)]
+#![allow(special_module_name)]
+#![allow(clippy::enum_variant_names)]
+#![allow(clippy::module_inception)]
+#![allow(clippy::wrong_self_convention)]
+#![allow(clippy::mut_from_ref)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::modulo_one)]
+#![allow(clippy::needless_range_loop)]
 
 #[macro_use]
-pub mod riscv;
+extern crate alloc;
+extern crate fdt;
 #[macro_use]
-pub mod print;
+extern crate log;
+#[macro_use]
+extern crate memoffset;
 
-pub mod backtrace;
-pub mod constants;
-pub mod context;
-pub mod drivers;
-pub mod elf;
-pub mod fdt;
-pub mod memory_region;
-pub mod pfault;
-pub mod plic;
-pub mod pmap;
-pub mod statics;
-pub mod sum;
-pub mod trap;
-pub mod virtio;
+use device::init_vm0_dtb;
+use kernel::{cpu_init, interrupt_init, mem_init, timer_init};
+use mm::heap_init;
+use vmm::{vm_init, vmm_boot_vm};
 
-pub use core::sync::atomic::{AtomicBool, Ordering};
-pub use constants::SYMBOL_PA2VA_OFFSET;
-pub use fdt::*;
-pub use riscv::bits::*;
-pub use pmap::{pa2va};
-pub use statics::{__SHARED_STATICS_IMPL, IpiReason, SHARED_STATICS};
+use crate::kernel::{cpu_sched_init, iommu_init};
+
+#[cfg(feature = "doc")]
+#[macro_use]
+pub mod macros;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod arch;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod board;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod config;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod device;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod driver;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod kernel;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod mm;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod panic;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod utils;
+#[allow(dead_code)]
+#[cfg(feature = "doc")]
+pub mod vmm;
+
+#[cfg(feature = "doc")]
+pub mod error;
+#[cfg(feature = "doc")]
+pub mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
+#[macro_use]
+#[cfg(not(feature = "doc"))]
+mod macros;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod arch;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod board;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod config;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod device;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod driver;
+#[cfg(not(feature = "doc"))]
+mod error;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod kernel;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod mm;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod panic;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod utils;
+#[allow(dead_code)]
+#[cfg(not(feature = "doc"))]
+mod vmm;
+#[cfg(not(feature = "doc"))]
+mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
+// use lib::{BitAlloc, BitAlloc256};
+
+pub static SYSTEM_FDT: spin::Once<alloc::vec::Vec<u8>> = spin::Once::new();
+
+fn print_built_info() {
+    println!(
+        "Welcome to {} {} {}!",
+        env!("BOARD"),
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION")
+    );
+    println!(
+        "Built at {build_time} by {hostname}\nCompiler: {rustc_version}\nFeatures: {features:?}\nCommit: {commit_hash}",
+        build_time = env!("BUILD_TIME"),
+        hostname = env!("HOSTNAME"),
+        commit_hash = env!("GIT_COMMIT"),
+        rustc_version = built_info::RUSTC_VERSION,
+        features = built_info::FEATURES_LOWERCASE_STR,
+    );
+}
+
+// Only core 0 will execute this function
+#[no_mangle]
+pub fn init(dtb: &mut fdt::myctypes::c_void) {
+    print_built_info();
+
+    #[cfg(feature = "pi4")]
+    {
+        crate::driver::gpio_select_function(0, 4);
+        crate::driver::gpio_select_function(1, 4);
+    }
+
+    heap_init();
+    kernel::logger_init().unwrap();
+    mem_init();
+    // SAFETY:
+    // DTB is saved value from boot_stage
+    // And it is passed by bootloader
+    unsafe {
+        init_vm0_dtb(dtb).unwrap();
+    }
+    iommu_init();
+    cpu_init();
+    info!("cpu init ok");
+
+    interrupt_init();
+    info!("interrupt init ok");
+
+    timer_init();
+    cpu_sched_init();
+    info!("sched init ok");
+
+    #[cfg(not(feature = "secondary_start"))]
+    crate::utils::barrier();
+
+    vm_init();
+    info!(
+        "{} Hypervisor init ok\n\nStart booting Monitor VM ...",
+        env!("CARGO_PKG_NAME")
+    );
+    vmm_boot_vm(0);
+
+    loop {
+        core::hint::spin_loop();
+    }
+}
+
+// Other cores will execute this function
+pub fn secondary_init(mpidr: usize) {
+    info!("secondary core {:#x} init", mpidr);
+    cpu_init();
+    interrupt_init();
+    info!("secondary core {:#x} interrupt init", mpidr);
+    timer_init();
+    cpu_sched_init();
+
+    info!("[boot] sched init ok at core {:#x}", mpidr);
+
+    #[cfg(not(feature = "secondary_start"))]
+    crate::utils::barrier();
+    use crate::arch::guest_cpu_on;
+    guest_cpu_on(mpidr);
+    crate::kernel::cpu_idle();
+}
