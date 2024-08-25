@@ -8,6 +8,21 @@ use crate::board::PLAT_DESC;
 // XXX: Fixed boot stack size limits the maximum number of cpus, see '_start'.
 const MAX_CPU: usize = 8;
 
+/* --------------------------------------------------------------
+ * repr attribute
+ * a) Make Rust struct with C memory layout
+ * b) To specify a specific alignment, use repr(align(n)), where
+ *    n is the number of bytes to align to (and must be a power
+ *    of two).
+ *
+ * #[repr(C)]
+ * #[repr(align(n))]
+ * #[repr(packed)]
+ *
+ * As below, combine repr(C) with repr(align(n)) to obtain an
+ * aligned and C-compatible layout.
+ * --------------------------------------------------------------
+ */
 #[repr(align(8), C)]
 struct CoreBootStack([u8; PAGE_SIZE * 2]);
 
@@ -18,20 +33,51 @@ impl<const NUM: usize> BootStack<NUM> {
         Self([const { CoreBootStack([0; PAGE_SIZE * 2]) }; NUM])
     }
 }
+
 #[link_section = ".bss.stack"]
 static mut BOOT_STACK: BootStack<{ PLAT_DESC.cpu_desc.num }> = BootStack::new();
 
+/* --------------------------------------------------------------
+ * extern "C" - To wrap a C function for Rust
+ *
+ * By default, any function you write in Rust will use the Rust
+ * ABI (which is also not stabilized). Instead, when building
+ * outwards facing FFI APIs we need to tell the compiler to use
+ * the system ABI.
+ *
+ * Note: FFI (Rust provides a Foreign Function Interface (FFI)
+ * to C libraries. Foreign functions must be declared inside an
+ * extern block annotated with a #[link] attribute containing
+ * the name of the foreign library.)
+ *
+ * #[link(name = "")]
+ * extern { ... }
+ * --------------------------------------------------------------
+ */
 extern "C" {
     fn _bss_begin();
     fn _bss_end();
     fn vectors();
 }
 
+/* --------------------------------------------------------------
+ * #[no_mangle]
+ *
+ * The Rust compiler mangles symbol names differently than native
+ * code linkers expect. As such, any function that Rust exports
+ * to be used outside of Rust needs to be told not to be mangled
+ * by the compiler.
+ * --------------------------------------------------------------
+ */
 #[naked]
 #[no_mangle]
 #[link_section = ".text.boot"]
 /// The entry point of the kernel.
 pub unsafe extern "C" fn _start() -> ! {
+    //! raw string literal: r#"..."#
+    //!
+    //! sym <path>
+    //! a) <path> must refer to a fn or static
     asm!(
         r#"
         // save fdt pointer to x20

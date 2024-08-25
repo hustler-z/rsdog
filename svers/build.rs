@@ -11,6 +11,19 @@
 use std::env::var;
 use std::process::Command;
 
+/* --------------------------------------------------------------
+ * - Hustler 2024/08/24 Fri -
+ *
+ * A build.rs script is a file written in Rust syntax, that is
+ * executed on the compilation machine, AFTER dependencies of
+ * the project have been built, but BEFORE the project is built.
+ *
+ * The build.rs is placed at the root of the package. Then cargo
+ * build will compile and execute it before the build of the
+ * package.
+ * --------------------------------------------------------------
+ */
+
 // get text_start by arch and platform
 fn get_text_start() -> u64 {
     let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();

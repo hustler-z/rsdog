@@ -384,6 +384,18 @@ fn loop_thru() {
     }
 
     println!();
+
+    let arr = [0_u16; 16];
+
+    /* Rust will check for out-of-bounds access on manual array
+     * indexing to guarantee memory safety, while C will happily
+     * index outside the array.
+     */
+    for element in arr.iter() {
+        print!("{} ", element);
+    }
+
+    println!();
 }
 
 /* Collections - Array, Vector, HashMap
