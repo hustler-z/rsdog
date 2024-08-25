@@ -28,6 +28,18 @@ struct CoreBootStack([u8; PAGE_SIZE * 2]);
 
 struct BootStack<const NUM: usize>([CoreBootStack; NUM]);
 
+/* --------------------------------------------------------------
+ * Generic parameters < ... >
+ *
+ * Functions, type aliases, structs, enumerations, unions, traits,
+ * and implementations may be parameterized by types, constants,
+ * and lifetimes.
+ *
+ * Generic parameters are declared in a GenericParams list. The
+ * scope of a generic parameter is within the item it is declared
+ * on.
+ * --------------------------------------------------------------
+ */
 impl<const NUM: usize> BootStack<NUM> {
     const fn new() -> Self {
         Self([const { CoreBootStack([0; PAGE_SIZE * 2]) }; NUM])
@@ -73,7 +85,15 @@ extern "C" {
 #[no_mangle]
 #[link_section = ".text.boot"]
 /// The entry point of the kernel.
+/// -------------------------------------------------------------
+/// - Hustler 2024/08/25 Sun -
+///
+/// The ! type can only appear in function return types presently,
+/// indicating it is a diverging function that never returns.
+/// -------------------------------------------------------------
 pub unsafe extern "C" fn _start() -> ! {
+    //! Inline Assembly
+    //!
     //! raw string literal: r#"..."#
     //!
     //! sym <path>

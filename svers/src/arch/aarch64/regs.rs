@@ -8,6 +8,13 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
+/* --------------------------------------------------------------
+ * - Hustler 2024/08/25 Sun -
+ *
+ * A macro invocation expands a macro at compile time and
+ * replaces the invocation with the result of the macro.
+ * --------------------------------------------------------------
+ */
 use alloc::fmt;
 
 pub trait SysReg {
