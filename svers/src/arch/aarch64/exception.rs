@@ -54,8 +54,8 @@ const ESR_ELx_S1PTW: usize = 1 << ESR_ELx_S1PTW_SHIFT;
 fn translate_far_to_hpfar(far: usize) -> Result<usize, ()> {
     /*
      * We have
-     *	PAR[PA_Shift - 1 : 12] = PA[PA_Shift - 1 : 12]
-     *	HPFAR[PA_Shift - 9 : 4]  = FIPA[PA_Shift - 1 : 12]
+     * PAR[PA_Shift - 1 : 12] = PA[PA_Shift - 1 : 12]
+     * HPFAR[PA_Shift - 9 : 4]  = FIPA[PA_Shift - 1 : 12]
      */
     // #define PAR_TO_HPFAR(par) (((par) & GENMASK_ULL(PHYS_MASK_SHIFT - 1, 12)) >> 8)
     fn par_to_far(par: u64) -> u64 {

@@ -13,6 +13,9 @@
  *
  * A macro invocation expands a macro at compile time and
  * replaces the invocation with the result of the macro.
+ *
+ * A macro defined with macro_rule! works entirely by pattern
+ * matching.
  * --------------------------------------------------------------
  */
 use alloc::fmt;

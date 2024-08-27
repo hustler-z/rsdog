@@ -265,6 +265,18 @@ impl GicDistributor {
         let prev = self.ITARGETSR[idx].get();
         let value = (prev & !mask) | (((trgt as u32) << off) & mask);
         self.ITARGETSR[idx].set(value);
+        /* ------------------------------------------------------
+         * - Hustler 2024/08/26 Mon -
+         *
+         * The Drop trait only has one method: drop, which is
+         * called automatically when an object goes out of
+         * scope. The main use of the Drop trait is to free
+         * the resources that the implementor instance owns.
+         *
+         * using the 'drop' function can manually drop the
+         * variable.
+         * ------------------------------------------------------
+         */
         drop(lock);
     }
 
@@ -363,29 +375,29 @@ impl GicDistributor {
 }
 
 register_structs! {
-  #[allow(non_snake_case)]
-  pub GicCpuInterface {
-    (0x0000 => CTLR: ReadWrite<u32>),   // CPU Interface Control Register
-    (0x0004 => PMR: ReadWrite<u32>),    // Interrupt Priority Mask Register
-    (0x0008 => BPR: ReadWrite<u32>),    // Binary Point Register
-    (0x000c => IAR: ReadOnly<u32>),     // Interrupt Acknowledge Register
-    (0x0010 => EOIR: WriteOnly<u32>),   // End of Interrupt Register
-    (0x0014 => RPR: ReadOnly<u32>),     // Running Priority Register
-    (0x0018 => HPPIR: ReadOnly<u32>),   // Highest Priority Pending Interrupt Register
-    (0x001c => ABPR: ReadWrite<u32>),   // Aliased Binary Point Register
-    (0x0020 => AIAR: ReadOnly<u32>),    // Aliased Interrupt Acknowledge Register
-    (0x0024 => AEOIR: WriteOnly<u32>),  // Aliased End of Interrupt Register
-    (0x0028 => AHPPIR: ReadOnly<u32>),  // Aliased Highest Priority Pending Interrupt Register
-    (0x002c => reserved_0),
-    (0x00d0 => APR: [ReadWrite<u32>; 4]),    // Active Priorities Register
-    (0x00e0 => NSAPR: [ReadWrite<u32>; 4]),  // Non-secure Active Priorities Register
-    (0x00f0 => reserved_1),
-    (0x00fc => IIDR: ReadOnly<u32>),    // CPU Interface Identification Register
-    (0x0100 => reserved_2),
-    (0x1000 => DIR: WriteOnly<u32>),    // Deactivate Interrupt Register
-    (0x1004 => reserved_3),
-    (0x2000 => @END),
-  }
+    #[allow(non_snake_case)]
+    pub GicCpuInterface {
+        (0x0000 => CTLR: ReadWrite<u32>),   // CPU Interface Control Register
+        (0x0004 => PMR: ReadWrite<u32>),    // Interrupt Priority Mask Register
+        (0x0008 => BPR: ReadWrite<u32>),    // Binary Point Register
+        (0x000c => IAR: ReadOnly<u32>),     // Interrupt Acknowledge Register
+        (0x0010 => EOIR: WriteOnly<u32>),   // End of Interrupt Register
+        (0x0014 => RPR: ReadOnly<u32>),     // Running Priority Register
+        (0x0018 => HPPIR: ReadOnly<u32>),   // Highest Priority Pending Interrupt Register
+        (0x001c => ABPR: ReadWrite<u32>),   // Aliased Binary Point Register
+        (0x0020 => AIAR: ReadOnly<u32>),    // Aliased Interrupt Acknowledge Register
+        (0x0024 => AEOIR: WriteOnly<u32>),  // Aliased End of Interrupt Register
+        (0x0028 => AHPPIR: ReadOnly<u32>),  // Aliased Highest Priority Pending Interrupt Register
+        (0x002c => reserved_0),
+        (0x00d0 => APR: [ReadWrite<u32>; 4]),    // Active Priorities Register
+        (0x00e0 => NSAPR: [ReadWrite<u32>; 4]),  // Non-secure Active Priorities Register
+        (0x00f0 => reserved_1),
+        (0x00fc => IIDR: ReadOnly<u32>),    // CPU Interface Identification Register
+        (0x0100 => reserved_2),
+        (0x1000 => DIR: WriteOnly<u32>),    // Deactivate Interrupt Register
+        (0x1004 => reserved_3),
+        (0x2000 => @END),
+    }
 }
 
 unsafe impl Sync for GicCpuInterface {}

@@ -89,7 +89,8 @@ extern "C" {
 /// - Hustler 2024/08/25 Sun -
 ///
 /// The ! type can only appear in function return types presently,
-/// indicating it is a diverging function that never returns.
+/// indicating it is a diverging function (发散函数) that never
+/// returns.
 /// -------------------------------------------------------------
 pub unsafe extern "C" fn _start() -> ! {
     //! Inline Assembly
@@ -141,7 +142,8 @@ pub unsafe extern "C" fn _start() -> ! {
         mrs x0, mpidr_el1
         bl  {cpu_map_self}
 
-        bl {init_sysregs} // here, enable cache and MMU, then switch the stack
+        // here, enable cache and MMU, then switch the stack
+        bl {init_sysregs}
 
         // set real sp pointer
         msr spsel, #1
@@ -213,7 +215,8 @@ pub unsafe extern "C" fn _secondary_start() -> ! {
         mrs x0, mpidr_el1
         bl  {cpu_map_self}
 
-        bl {init_sysregs} // here, enable cache and MMU, then switch the stack
+        // here, enable cache and MMU, then switch the stack
+        bl {init_sysregs}
 
         // set real sp pointer
         msr spsel, #1

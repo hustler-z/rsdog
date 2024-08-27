@@ -659,6 +659,44 @@ fn test_generic() {
 // --------------------------------------------------------------
 
 /* test Modules
+ *
+ * --------------------------------------------------------------
+ * Operator Overloading
+ *
+ * Unary operators
+ *     std::ops::Neg                 -x
+ *     std::ops::Not                 !x
+ * Arithmetic operators
+ *     std::ops::Add                 x + y
+ *     std::ops::Sub                 x - y
+ *     std::ops::Mul                 x * y
+ *     std::ops::Div                 x / y
+ *     std::ops::Rem                 x % y
+ * Bitwise operators
+ *     std::ops::BitAnd              x & y
+ *     std::ops::BitOr               x | y
+ *     std::ops::BitXor              x ^ y
+ *     std::ops::Shl                 x << y
+ *     std::ops::Shr                 x >> y
+ * Compound assignment arithmetic operators
+ *     std::ops::AddAssign           x += y
+ *     std::ops::SubAssign           x -= y
+ *     std::ops::MulAssign           x *= y
+ *     std::ops::DivAssign           x /= y
+ *     std::ops::RemAssign           x %= y
+ * Compound assignment bitwise operators
+ *     std::ops::BitAndAssign        x &= y
+ *     std::ops::BitOrAssign         x |= y
+ *     std::ops::BitXorAssign        x ^= y
+ *     std::ops::ShlAssign           x <<= y
+ *     std::ops::ShrAssign           x >>= y
+ * Comparison
+ *     std::cmp::PartialEq           x == y, x != y
+ *     std::cmp::PartialOrd          x < y, x <= y, x > y, x >= y
+ * Indexing
+ *     std::ops::Index               x[y], &x[y]
+ *     std::ops::IndexMut            x[y] = z, &mut x[y]
+ * --------------------------------------------------------------
  */
 #[cfg(test)]
 mod tests {
@@ -667,6 +705,25 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
+    }
+
+    use std::ops::{Add, Mul};
+    /* operations + and * are needed for below generic function
+     * Add<Output=N> ensures N + N = N.
+     */
+    fn dot<N>(v1: &[N], v2: &[N]) -> N
+        where N: Add<Output=N> + Mul<Output=N> + Default + Copy
+    {
+        let mut total = N::default();
+        for i in 0..v1.len() {
+            total = total + v1[i] * v2[i];
+        }
+        total
+    }
+
+    #[test]
+    fn test_dot() {
+        assert_eq!(dot(&[1, 2, 3, 4], &[1, 1, 1, 1]), 10);
     }
 }
 

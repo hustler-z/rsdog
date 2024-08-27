@@ -10,6 +10,22 @@
 use crate::kernel::Vm;
 use crate::kernel::Vcpu;
 
+/* --------------------------------------------------------------
+ * In memory, a trait object is a fat pointer consisting of a
+ * pointer to the value, plus a pointer to a table representing
+ * that value’s type. Each trait object takes up two machine
+ * words.
+ *
+ *             +----------+ A Trait Object
+ *        +----|   data   |
+ *        |    +----------+
+ *        |    |   vptr   |----+
+ *        |    +----------+    |
+ *     buffer                vtable (virtual table)
+ *
+ * --------------------------------------------------------------
+ */
+
 /// Architecture-independent ContextFrame trait.
 pub trait ContextFrameTrait {
     fn new(pc: usize, sp: usize, arg: usize) -> Self;

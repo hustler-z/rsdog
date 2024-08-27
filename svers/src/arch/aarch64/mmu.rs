@@ -8,6 +8,11 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
+/* Tock Register Interface
+ *
+ * Provides efficient mechanisms to express and use type-checked
+ * memory mapped registers and bitfields.
+ */
 use tock_registers::*;
 use tock_registers::interfaces::*;
 
@@ -108,6 +113,14 @@ impl BlockDescriptor {
         BlockDescriptor(0)
     }
 }
+
+/* --------------------------------------------------------------
+ * An array’s size is a constant determined at compile time and
+ * is part of the type:
+ *
+ * [T; N] represening an array of N values, each of type T.
+ * --------------------------------------------------------------
+ */
 
 #[repr(C)]
 #[repr(align(4096))]
@@ -282,6 +295,13 @@ pub extern "C" fn mmu_init(pt: &PageTables) {
 
 const PAR_EL1_OFF: usize = 12;
 const PAR_EL1_LEN: usize = 36;
+
+/* --------------------------------------------------------------
+ * Zero-tuple () => Unit type has only one value. Rust uses the
+ * unit type where there's no meaningful value to carry, but
+ * context requires some sort of type nonetheless.
+ * --------------------------------------------------------------
+ */
 
 /// translate gva to ipa
 pub fn gva2ipa(gva: usize) -> Result<usize, ()> {
