@@ -155,12 +155,22 @@ impl Data<'_> {
  *
  * #[outer_attribute]  - apply to the item immediately following
  *                       it.
+ * (外部属性)
+ *
  * #![inner_attribute] - apply to enclosing item (typically a
  *                       module or a crate).
+ * (内部属性)
  *
  * #[cfg(...)]         - attribute position
  *
  * e.g. #[cfg(target_os = "linux")]
+ *
+ * target_endian
+ * target_family
+ * target_feature
+ * target_arch
+ * target_vendor
+ * target_os
  */
 #[allow(unused)]
 fn test_lifetime_label<'a>(ref_0: &'a u32, ref_1: &'a u32) -> &'a u32 {
@@ -218,6 +228,12 @@ trait About: State + Dread {
     fn subset(&self) -> &'static str;
 }
 
+/* non_exhaustive attribute
+ *
+ * non_exhaustive属性表示类型或变体将来可能会添加更多字段或变体.
+ * 它可以应用在结构体(struct)上、枚举(enum)上和枚举变体上.
+ */
+#[non_exhaustive]
 struct Status {
     stat: String,
     code: u32,
@@ -290,7 +306,11 @@ fn test_struct() {
 
 // --------------------------------------------------------------
 
-/* Deref Coercion */
+/* Deref Coercion (自动解引用类型转换) - Auto Deref + Type Coercion
+ *
+ * A: Deref<Target=B>
+ * A: DerefMut<Target=B>
+ */
 fn iter_str(s: &str) {
     for c in s.chars() {
         print!("{} ", c);
@@ -738,7 +758,7 @@ mod tests {
 
 
 /* --------------------------------------------------------------
- * Unsafety
+ * Unsafety (非安全性)
  *
  * Unsafe operations can potentially violate the memory-safety
  * guarantees of Rust's static semantics.
@@ -749,10 +769,12 @@ mod tests {
  * 4) Calling an unsafe function (including an intrinsic or
  *    foreign function).
  * 5) Implementing an unsafe trait.
+ *
  * --------------------------------------------------------------
  */
+#[cfg(target_arch = "aarch64")]
 use std::arch::asm;
-
+#[cfg(target_arch = "aarch64")]
 fn test_unsafety() {
     let m: u64 = 3;
     let n: u64;
@@ -1069,8 +1091,41 @@ fn test_threads() {
  *
  * Operator overloading:    std::ops
  *
- * From and Into            type conversions
+ * AsMut<T> - Used to do a cheap mutable-to-mutable reference
+ *            conversion.
  *
+ * AsRef<T> - Used to do a cheap reference-to-reference
+ *            conversion. AsRef auto-dereferences if the inner
+ *            type is a reference or a mutable reference.
+ *
+ * *.as_ref() 方法
+ *
+ * Many smart pointers provide an as_ref implementation which
+ * simply returns a reference to the pointed-to value (but do
+ * not perform a cheap reference-to-reference conversion for
+ * that value).
+ *
+ * pub trait Sized {} - (Sized) 定长类型特征
+ *
+ * Types with a constant size known at compile time. All type
+ * parameters have an implicit bound of Sized. The special
+ * syntax ?Sized can be used to remove this bound if it’s not
+ * appropriate.
+ *
+ * TryFrom and TryInto
+ *
+ * From and Into            type conversions
+ */
+fn test_conversion() {
+    fn putstr<T: AsRef<str>>(s: T) {
+        println!("{}", s.as_ref());
+    }
+
+    let s = "AsRef been tested";
+    putstr(s);
+}
+
+/*
  * Define a function that takes a closure:
  *
  * Fn        - consume/mutate captured values,
@@ -1102,11 +1157,11 @@ fn main() {
     let var_1 = 'A' as u32;
     let value: u32 = 100;
 
-    /* Explicit Type Casting - "as"
+    /* Explicit Type Casting - "as" (显示类型转换)
      *
-     * Type coercions are implicit operations that change the
-     * type of a value. They happen automatically at specific
-     * locations and are highly restricted in what types
+     * Type coercions (隐式类型转换) are implicit operations that
+     * change the type of a value. They happen automatically at
+     * specific locations and are highly restricted in what types
      * actually coerce.
      *
      */
@@ -1162,6 +1217,8 @@ fn main() {
      * The 'type' statement can be used to give a new name to
      * an existing type. Types must have UpperCamelCase names,
      * or the compiler will raise a warning.
+     *
+     * Rust函数指针
      */
     type Funcptr = fn(u32) -> u32;
     /* Function pointer */
@@ -1260,6 +1317,9 @@ fn main() {
 
     test_mods();
 
+    test_conversion();
+
+    #[cfg(target_arch = "aarch64")]
     test_unsafety();
 
     println!("---------------------------------");
