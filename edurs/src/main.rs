@@ -119,6 +119,15 @@ use std::collections::HashMap;
  * The lifetime of the owner must outlive the borrower (i.e.,
  * the reference).
  *
+ *
+ * Deref and DerefMut Traits - Dereferencing Operators * and .
+ *
+ * Deref
+ *
+ * DerefMut - Dereference Mutably
+ *
+ * deref coercion ()
+ *
  * --------------------------------------------------------------
  */
 #[allow(unused)]
@@ -583,7 +592,7 @@ macro_rules! pr_debug {
  *
  *   impl block  Trait name    Struct name
  *       \           |             /
- *     impl<T>   ATrait<T> for XStruct<T> {...}
+ *     impl<T>    Trait<T> for Struct<T> {...}
  *
  * --------------------------------------------------------------
  *
@@ -892,6 +901,7 @@ fn test_mods() {
  *            e.g. Sender -> Receiver
  *
  * Mutex<T> (互斥器)
+ * Rc<T>
  * Arc<T> (原子引用计数)
  * --------------------------------------------------------------
  */
@@ -1092,7 +1102,12 @@ fn main() {
     let var_1 = 'A' as u32;
     let value: u32 = 100;
 
-    /* Type Casting - "as"
+    /* Explicit Type Casting - "as"
+     *
+     * Type coercions are implicit operations that change the
+     * type of a value. They happen automatically at specific
+     * locations and are highly restricted in what types
+     * actually coerce.
      *
      */
     let addr_var_1 = &var_1 as *const u32;
