@@ -17,6 +17,8 @@
  * --------------------------------------------------------------
  */
 
+#![allow(dead_code)]
+
 // --------------------------------------------------------------
 
 //! Declare Immutable Variables
@@ -73,23 +75,58 @@ use std::collections::HashMap;
  *
  * Lifetime Elision
  *
- * a) Each input lifetime that is elided is assigned a separate
- *    lifetime.
- * b) When there is a single input lifetime, it is elided to the
+ * a) When there is a single input lifetime, it is elided to the
  *    output lifetime.
- * c) For methods, if self is a reference, the lifetime for self
- *    is elided to the output lifetimes.
+ *    i.e., “one in, one out” elision rule
+ *
+ *    fn f(x: &T) -> (&T, &T) =>
+ *    fn f<'a>(x: &'a T) -> (&'a T, &'a T)
+ *
+ *
+ * b) when there are no references in the outputs from a function;
+ *    in this case, each of the input references automatically
+ *    gets its own lifetime, different from any of the other
+ *    input parameters.
+ *
+ *    fn f(x: &T, y: &T, z: &U) -> u32 =>
+ *    fn<'a, 'b, 'c>(x: &'a T, y: &'b T, z: &'c T) -> u32
+ *
+ * c) methods that use a reference to self (either &self or &mut
+ *    self); in this case, the compiler assumes that any output
+ *    references take the lifetime of self, as this turns out to
+ *    be (by far) the most common situation.
+ *
+ *    fn f(&self, x: T, y: &T) -> &U =>
+ *    fn f<'a, 'b, 'c>(&'a self, x: &'b T, y: &'c T) -> &'a U
+ * --------------------------------------------------------------
  *
  * Lifetime sharing
  *
+ * --------------------------------------------------------------
+ *
+ * If there are no input lifetimes, but the output return value
+ * includes a reference:
+ *
  * A static lifetime, 'static, spans the entire application.
+ *
+ * fn f() -> &'static T
+ *
+ * The Rust compiler guarantees that a static item always has
+ * the same address for the entire duration of the program and
+ * never moves.
  *
  * Subtyping Lifetime creates an extensible relationship
  * between two lifetimes.
  * 'subtype: 'basetype
  *
- * Anonymous Lifetime ??
- * '_
+ * --------------------------------------------------------------
+ *
+ * Anonymous Lifetime '_ can be used in places where a specific
+ * lifetime label is not needed.
+ *
+ * The anonymous lifetime '_ allows you to mark an elided
+ * lifetime as being present, without having to fully restore all
+ * of the lifetime names.
  *
  * --------------------------------------------------------------
  *
@@ -150,27 +187,19 @@ impl Data<'_> {
     }
 }
 
-/* An attribute is metadata applied to some module, crate or
+/* --------------------------------------------------------------
+ * An attribute is metadata applied to some module, crate or
  * item.
  *
  * #[outer_attribute]  - apply to the item immediately following
  *                       it.
- * (外部属性)
- *
  * #![inner_attribute] - apply to enclosing item (typically a
  *                       module or a crate).
- * (内部属性)
  *
  * #[cfg(...)]         - attribute position
  *
  * e.g. #[cfg(target_os = "linux")]
- *
- * target_endian
- * target_family
- * target_feature
- * target_arch
- * target_vendor
- * target_os
+ * --------------------------------------------------------------
  */
 #[allow(unused)]
 fn test_lifetime_label<'a>(ref_0: &'a u32, ref_1: &'a u32) -> &'a u32 {
@@ -199,10 +228,12 @@ fn interact_console() {
  *
  * self - specify the "receiver" - the object the method acts on
  *
- * Traits (特征) - interface
- *         A collection of methods defined for an unknown
- *         type: Self. Traits can be implemented for any
- *         data type.
+ * Traits (特征)
+ *
+ * a) Define a set of related functions that some underlying item
+ *    make publicly available.
+ * b) Describe collections of related functionality that all
+ *    apply to the same underlying item.
  *
  * To implement traits: impl Trait for Type {..}
  *
@@ -228,12 +259,6 @@ trait About: State + Dread {
     fn subset(&self) -> &'static str;
 }
 
-/* non_exhaustive attribute
- *
- * non_exhaustive属性表示类型或变体将来可能会添加更多字段或变体.
- * 它可以应用在结构体(struct)上、枚举(enum)上和枚举变体上.
- */
-#[non_exhaustive]
 struct Status {
     stat: String,
     code: u32,
@@ -271,8 +296,10 @@ struct Number(i32);
 #[derive(Debug)]
 struct Mulout(i32);
 
-/* Associated types (a.k.a. output types) are placeholder types
+/* --------------------------------------------------------------
+ * Associated types (a.k.a. output types) are placeholder types
  * which are supplied by the trait implementation.
+ * --------------------------------------------------------------
  */
 trait MathTech {
     type Output;
@@ -306,11 +333,7 @@ fn test_struct() {
 
 // --------------------------------------------------------------
 
-/* Deref Coercion (自动解引用类型转换) - Auto Deref + Type Coercion
- *
- * A: Deref<Target=B>
- * A: DerefMut<Target=B>
- */
+/* Deref Coercion */
 fn iter_str(s: &str) {
     for c in s.chars() {
         print!("{} ", c);
@@ -346,13 +369,15 @@ fn check_ops_guard(pair: &(u32, u32)) {
     }
 }
 
-/* Nested Functions in Rust
+/* --------------------------------------------------------------
+ * Nested Functions in Rust
  *
  * A private function of the outer function.
  *
  * Function Pointers
  *
  * Function Alias
+ * --------------------------------------------------------------
  */
 fn test_fp(x: u32) -> u32 {
     x * x
@@ -383,7 +408,8 @@ fn give_direction(op: u32) -> Direction {
 
 // #[allow(unused)]
 
-/* break    - exit the loop early
+/* --------------------------------------------------------------
+ * break    - exit the loop early
  * continue - immediately start the next iteration
  *
  * Both continue and break can optionally take a label
@@ -393,6 +419,7 @@ fn give_direction(op: u32) -> Direction {
  * 'label: while
  * 'label: for
  * 'label: loop
+ * --------------------------------------------------------------
  */
 fn loop_thru() {
     let mut outer_cnt: u8 = 0;
@@ -484,7 +511,13 @@ fn test_collections() {
 
     let result = map_0.get(&"Math");
 
-    /* Option<T> stores either a value of type T or nothing.
+    /* ----------------------------------------------------------
+     * Both Option and Result provide a pair of methods that
+     * extract their inner value and panic! if it's absent:
+     * .unwrap() and .expect().
+     *
+     *
+     * Option<T> stores either a value of type T or nothing.
      *
      * unwrap will return the value in an option, or panic.
      * expect is similar but takes an error message.
@@ -493,13 +526,15 @@ fn test_collections() {
      *     None,           - Indicate failure/lack of value
      *     Some(T),        - a tuple struct that wraps a
      * }                     value with type T.
+     * ----------------------------------------------------------
      */
     match result {
         Some(value) => println!("Found {}", value),
         None => println!("Not Found"),
     }
 
-    /* Whereas Result<T, E> enum:
+    /* ----------------------------------------------------------
+     * Whereas Result<T, E> enum:
      * a) Ok(value)        - Indicate operation succeeded,
      *                       and wrap the value returned by
      *                       operation.
@@ -507,6 +542,12 @@ fn test_collections() {
      *                       wrap why which hopefully explained.
      *
      * ? used at the end of an expression returning a Result.
+     *
+     * This piece of syntactic sugar takes care of matching the
+     * Err arm, transforming the error type if necessary, and
+     * building the return Err(...) expression, all in a single
+     * character.
+     * ----------------------------------------------------------
      */
 }
 
@@ -660,13 +701,55 @@ impl<T, U> GenericBlk<T, U> {
     }
 }
 
-/* Trait Bounds
+/* --------------------------------------------------------------
+ *
+ * Trait Bounds - Indicate that generic code that is
+ *                parameterized by some type T can be used only
+ *                when that type T implements some specific
+ *                trait.
  *
  * impl Trait syntax can be used in function arguments and
  * return values. It allows us to work with types which
  * cannot name.
  *
+ * --------------------------------------------------------------
+ * Trait Objects
+ *
  * dyn Trait syntax - type-erased and dynamic dispatch
+ *
+ * A trait object is the other way to make use of the
+ * encapsulation defined by a trait, but here, different possible
+ * implementations of the trait are chosen at runtime rather than
+ * compile time. This dynamic dispatch is analogous to using
+ * virtual functions in C++, and under the covers, Rust has
+ * “vtable” objects that are roughly analogous to those in C++.
+ *
+ * dynamic aspect of trait objects also means that they always
+ * have to be handled indirectly, via a reference
+ * (e.g., &dyn Trait) or a pointer (e.g., Box<dyn Trait>) of some
+ * kind. The reason is that the size of the object implementing
+ * the trait isn’t known at compile time—it could be a giant
+ * struct or a tiny enum—so there’s no way to allocate the right
+ * amount of space for a bare trait object.
+ *
+ * Trait objects are fat pointers that combine a pointer to the
+ * underlying concrete item with a pointer to a vtable that in
+ * turn holds function pointers for all of the trait
+ * implementation’s methods.
+ *
+ * struct X on Stack
+ *    +------------+
+ * +->|            |     +------------+
+ * :  :            :  +->|            | vtable
+ * |  |            |  |  +------------+
+ * |  +------------+  |
+ * |                  |
+ * |  +------------+  |
+ * +--| trait_ptr0 |  |
+ *    +------------+  |
+ *    | trait_ptr1 |--+
+ *    +------------+
+ * --------------------------------------------------------------
  */
 
 /// fn duplicate<T: Clone>(a: T) -> (T, T) {
@@ -674,7 +757,7 @@ impl<T, U> GenericBlk<T, U> {
 /// }
 
 fn duplicate<T>(a: T) -> (T, T)
-    where T: Clone
+    where T: Clone /* Trait Bound */
 {
     (a.clone(), a.clone())
 }
@@ -758,7 +841,7 @@ mod tests {
 
 
 /* --------------------------------------------------------------
- * Unsafety (非安全性)
+ * Unsafety
  *
  * Unsafe operations can potentially violate the memory-safety
  * guarantees of Rust's static semantics.
@@ -769,12 +852,10 @@ mod tests {
  * 4) Calling an unsafe function (including an intrinsic or
  *    foreign function).
  * 5) Implementing an unsafe trait.
- *
  * --------------------------------------------------------------
  */
-#[cfg(target_arch = "aarch64")]
 use std::arch::asm;
-#[cfg(target_arch = "aarch64")]
+
 fn test_unsafety() {
     let m: u64 = 3;
     let n: u64;
@@ -1059,7 +1140,7 @@ fn test_threads() {
     }
 }
 
-/**
+/* --------------------------------------------------------------
  * Smart Pointer (智能指针)
  *
  * Using Box<T> to point to data on the heap
@@ -1071,8 +1152,34 @@ fn test_threads() {
  * use. If there are zero references to a value, the value
  * can be cleaned up without any references becoming invalid.
  *
- * RefCell<T>
+ * use Rust’s smart pointers for interconnected data
+ * structures:
+ *
+ * a) Rc allows shared ownership, with multiple things
+ *    referring to the same item. Rc is often combined with
+ *    RefCell.
+ * b) RefCell allows interior mutability so that internal
+ *    state can be modified without needing a mutable
+ *    reference. This comes at the cost of moving borrow
+ *    checks from compile time to runtime.
+ * c) Arc is the multithreading equivalent to Rc.
+ * d) Mutex (and RwLock) allows interior mutability in a
+ *    multithreading environment, roughly equivalent to
+ *    RefCell.
+ * e) Cell allows interior mutability for Copy types.
+ * --------------------------------------------------------------
  */
+use std::{
+    sync::Arc,
+};
+
+fn test_thread() {
+    let a = Arc::new([1, 2, 3]);
+    let b = a.clone();
+
+    thread::spawn(move || dbg!(a));
+    thread::spawn(move || dbg!(b));
+}
 
 // --------------------------------------------------------------
 
@@ -1091,48 +1198,29 @@ fn test_threads() {
  *
  * Operator overloading:    std::ops
  *
- * AsMut<T> - Used to do a cheap mutable-to-mutable reference
- *            conversion.
+ * --------------------------------------------------------------
+ * User-Defined Type Conversions
  *
- * AsRef<T> - Used to do a cheap reference-to-reference
- *            conversion. AsRef auto-dereferences if the inner
- *            type is a reference or a mutable reference.
+ * From<T>
+ * TryFrom<T>
+ * Into<T>
+ * TryInto<T>
  *
- * *.as_ref() 方法
+ * --------------------------------------------------------------
+ * Closure (Lambda Expression)
  *
- * Many smart pointers provide an as_ref implementation which
- * simply returns a reference to the pointed-to value (but do
- * not perform a cheap reference-to-reference conversion for
- * that value).
+ * Fn* Traits
  *
- * pub trait Sized {} - (Sized) 定长类型特征
- *
- * Types with a constant size known at compile time. All type
- * parameters have an implicit bound of Sized. The special
- * syntax ?Sized can be used to remove this bound if it’s not
- * appropriate.
- *
- * TryFrom and TryInto
- *
- * From and Into            type conversions
- */
-fn test_conversion() {
-    fn putstr<T: AsRef<str>>(s: T) {
-        println!("{}", s.as_ref());
-    }
-
-    let s = "AsRef been tested";
-    putstr(s);
-}
-
-/*
- * Define a function that takes a closure:
+ * The code that receives the closure has to accept an instance
+ * of one of the Fn* trauts:
  *
  * Fn        - consume/mutate captured values,
  *             can be called multiple times, concurrently
  * FnMut     - might mutate captured values
  *             can be called multiple times, not concurrently
  * FnOnce    - may call it once, might consume captured values
+ *
+ * --------------------------------------------------------------
  */
 fn closure_trait(func: impl FnOnce(u32) -> u32, arg: u32) -> u32 {
     println!("called with {arg}");
@@ -1157,13 +1245,23 @@ fn main() {
     let var_1 = 'A' as u32;
     let value: u32 = 100;
 
-    /* Explicit Type Casting - "as" (显示类型转换)
+    let var_2: u32 = 134;
+    let var_3: u64 = var_2.into();
+
+    /* ----------------------------------------------------------
+     * Explicit Type Casting - "as" and from/into
      *
-     * Type coercions (隐式类型转换) are implicit operations that
-     * change the type of a value. They happen automatically at
-     * specific locations and are highly restricted in what types
+     * >_@ Rock
+     *
+     * The as version also allows lossy conversions, whereas
+     * from/into do not.
+     *
+     * Type coercions are implicit operations that change the
+     * type of a value. They happen automatically at specific
+     * locations and are highly restricted in what types
      * actually coerce.
      *
+     * ----------------------------------------------------------
      */
     let addr_var_1 = &var_1 as *const u32;
 
@@ -1180,11 +1278,12 @@ fn main() {
      *
      * String Type consists of three fields:
      *
-     * +---------------+
-     * | backing array |
-     * +---------------+
-     * |    length     |
-     * +---------------+
+     * Far pointer on Stack         Data on Heap
+     * +---------------+            +-------+-------+
+     * |    pointer    |----------->| Index | Value |
+     * +---------------+            +-------+-------+
+     * |    length     |            :       :       :
+     * +---------------+            +-------+-------+
      * |   capacity    |
      * +---------------+
      *
@@ -1217,11 +1316,13 @@ fn main() {
      * The 'type' statement can be used to give a new name to
      * an existing type. Types must have UpperCamelCase names,
      * or the compiler will raise a warning.
-     *
-     * Rust函数指针
      */
     type Funcptr = fn(u32) -> u32;
-    /* Function pointer */
+    /* Function pointer
+     *
+     * A pointer to some code, with a type that reflects the
+     * signature of the function.
+     */
     let fp_0: Funcptr = test_fp;
 
     println!("---------------------------------");
@@ -1256,7 +1357,7 @@ fn main() {
 
     println!("u32 [{}, {}]", u32::MIN, u32::MAX);
 
-    println!("Type casting: {} -> {}", var_0, var_1);
+    println!("Type casting: {} {} {}", var_0, var_1, var_3);
 
     /* ----------------------------------------------------------
      * Print Implementation
@@ -1271,6 +1372,8 @@ fn main() {
     println!("---------------------------------");
 
 
+    test_thread();
+
     // interact_console();
     loop_thru();
 
@@ -1284,7 +1387,8 @@ fn main() {
     println!("Name: {}, Age: {}, Job: {}",
              rock.0, rock.1, rock.2);
 
-    /* Let
+    /* ----------------------------------------------------------
+     * Let
      *
      * a) if let expression - execute different code depending
      *    on whether a value matches a pattern.
@@ -1297,6 +1401,7 @@ fn main() {
      * In match expressions, you can match multiple patterns
      * using the | (as an or) syntax, which is the pattern or
      * operator.
+     * ----------------------------------------------------------
      */
     if let a@(5|65|100) = value {
         println!("Binding @: Match found {}", a);
@@ -1317,14 +1422,11 @@ fn main() {
 
     test_mods();
 
-    test_conversion();
-
-    #[cfg(target_arch = "aarch64")]
     test_unsafety();
 
     println!("---------------------------------");
 
-    test_threads();
+    // test_threads();
 
     println!("---------------------------------");
 }

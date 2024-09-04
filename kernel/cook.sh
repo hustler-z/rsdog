@@ -9,20 +9,27 @@ TLPATH=""
 CMD=""
 
 usage() {
-printf "<Hustler>  Build Linux Kernel Images
-usage:   ./cook.sh [options]
+printf "
+KERNEL                                       BUILDING SCRIPT 2024
+-----------------------------------------------------------------
+usage:                          ./cook.sh [options]
+
 options:
-    -h                      help information
-    -p [path-to-kernel]     path to target kernel source code
-    -t [path-to-toolchain]  absolute path of the toolchain
+    -h                          help information
+    -p [path-to-kernel]         path to target kernel source code
+    -t [path-to-toolchain]      absolute path of the toolchain
     -c [cmds]
+
 cmds:
-    build                   build the target kernel
-    clean                   clean built kernel objects
-    cleanall                remove output directory
-    config                  kernel menuconfig
-    mrproper                remove previous configuration
-    tags                    tags for better code reading
+    build                       build the target kernel
+    clean                       clean built kernel objects
+    cleanall                    remove output directory
+    config                      kernel menuconfig
+    mrproper                    remove previous configuration
+    tags                        tags for better code read
+                                experience
+-----------------------------------------------------------------
+
 "
 }
 
