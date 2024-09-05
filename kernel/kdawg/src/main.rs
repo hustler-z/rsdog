@@ -25,6 +25,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 			.unwrap_or(250),
 		&kernel.logs,
 	);
+    /* ----------------------------------------------------------
+     * cfg!() - Evaluates boolean combinations of configuration
+     *          flags at compile-time.
+     * ----------------------------------------------------------
+     */
 	if !cfg!(test) {
 		util::setup_panic_hook()?;
 		let stdout = stdout().into_raw_mode()?.into_alternate_screen()?;

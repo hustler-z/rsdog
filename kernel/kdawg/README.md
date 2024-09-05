@@ -2,7 +2,7 @@
 
 ## Introduction
 
-*****kawg** is on the progress.
+**kawg** is on the progress.
 
 #### Note
 

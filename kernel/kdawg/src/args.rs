@@ -2,14 +2,13 @@ use clap::{Arg, ArgAction, Command as App};
 
 /* ASCII format of the project logo */
 const ASCII_LOGO: &str = "
- ``    ````````````    ````   ```````````    ```````````
-:NNs `hNNNNNNNNNNNNh` sNNNy   yNNNNNNNNNN+   dNNNNNNNNNN:
-/MMMydMMyyyyyyydMMMMdhMMMMy   yMMMyyyhMMMo   dMMMyyydMMM/
-/MMMMMMM`      oMMMMMMMMMMy   yMMM`  -MMMo   dMMN   /MMM/
-/MMMs:::hhhs   oMMM+:::MMMNhhhNMMMdhhdMMMmhhhNMMN   /MMM/
-:mmm/   dmmh   +mmm-  `mmmmmmmmmmmmmmmmmmmmmmmmmd   /mmm:
- ```    ```     ```    ``````````````````````````    ```";
-
+```  ``````````   ``      `     `````````
+:MN  `NNNMHHMNa   AVA      A     AUKMVAVA
+/MMvdDAV  VAN  VAVA  GH   :NA   AVA
+/MMMN     DAM   HMKOB%MN  AVW  PMV  aMAVA
+/MMM:Abs  HhN  AMH    VWN:A:B@HNAVA   AVA
+:NN   HHhaN@HMPMNV     VbAV   VKBNNNGAVAV  KDAWG
+```   ``` ```````    `````   ````````````";
 /**
  * Parse command line arguments using clap.
  *
@@ -20,10 +19,9 @@ pub fn get_args() -> App {
 		.version(env!("CARGO_PKG_VERSION"))
 		.author(env!("CARGO_PKG_AUTHORS"))
 		.about(format!(
-			"{} {}\n{}\n{}\n\n{}",
+			"{} {}\n{}\n\n{}",
 			env!("CARGO_PKG_NAME"),
 			env!("CARGO_PKG_VERSION"),
-			env!("CARGO_PKG_AUTHORS"),
 			env!("CARGO_PKG_DESCRIPTION"),
 			"Press '?' while running the terminal UI to see key bindings."
 		))

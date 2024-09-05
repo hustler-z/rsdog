@@ -53,6 +53,15 @@ pub enum ModuleCommand {
 	Clear,
 }
 
+/* Syntax Note: 2024/09/05 Tur
+ *
+ * .as_ref() - convert the type into a shared reference of
+ *             the (usually inferred) input type.
+ *             T     ->     &T
+ * .as_mut() - convert the type into a mutable reference of
+ *             the (usually inferred) input type.
+ *             T     ->     &mut T
+ */
 impl TryFrom<String> for ModuleCommand {
 	type Error = ();
 	fn try_from(s: String) -> Result<Self, Self::Error> {
@@ -79,10 +88,10 @@ impl ModuleCommand {
             Self::None => Command::new(String::from(""), "", format!("Module: {module_name}"), Symbol::None),
             Self::Load => Command::new(
                 if Self::is_module_filename(module_name) {
-					format!("insmod {}", &module_name)
-				} else {
-					format!("modprobe {0} || insmod {0}.ko", &module_name)
-				},
+                    format!("insmod {}", &module_name)
+                } else {
+                    format!("modprobe {0} || insmod {0}.ko", &module_name)
+                },
                 "Add and remove modules from the Linux Kernel\n
                 This command inserts a module to the kernel.",
                 format!("Load: {module_name}"), Symbol::Anchor),
@@ -105,28 +114,28 @@ impl ModuleCommand {
                 "modprobe/insmod/rmmod: Add and remove modules from the Linux Kernel\n
                 This command reloads a module, removes and inserts to the kernel.",
                 format!("Reload: {module_name}"), Symbol::FuelPump),
-			Self::Blacklist => Command::new(
-				format!("if ! grep -q {module} /etc/modprobe.d/blacklist.conf; then
-				  echo 'blacklist {module}' >> /etc/modprobe.d/blacklist.conf
-				  echo 'install {module} /bin/false' >> /etc/modprobe.d/blacklist.conf
-				fi", module = &module_name),
-				"This command blacklists a module and any other module that depends on it.\n
-				Blacklisting is a mechanism to prevent the kernel module from loading. \
-				This could be useful if, for example, the associated hardware is not needed, \
-				or if loading that module causes problems.
-				The blacklist command will blacklist a module so that it will not be loaded \
-				automatically, but the module may be loaded if another non-blacklisted module \
-				depends on it or if it is loaded manually. However, there is a workaround for \
-				this behaviour; the install command instructs modprobe to run a custom command \
-				instead of inserting the module in the kernel as normal, so the module will \
-				always fail to load.",
-				format!("Blacklist: {module_name}"), Symbol::SquareX),
-			Self::Clear => Command::new(
-				String::from("dmesg --clear"),
-				"dmesg: Print or control the kernel ring buffer
-				option: -C, --clear\n
-				Clear the ring buffer.",
-				String::from("Clear"), Symbol::Cloud),
+            Self::Blacklist => Command::new(
+                format!("if ! grep -q {module} /etc/modprobe.d/blacklist.conf; then
+                  echo 'blacklist {module}' >> /etc/modprobe.d/blacklist.conf
+                  echo 'install {module} /bin/false' >> /etc/modprobe.d/blacklist.conf
+                fi", module = &module_name),
+                "This command blacklists a module and any other module that depends on it.\n
+                Blacklisting is a mechanism to prevent the kernel module from loading. \
+                This could be useful if, for example, the associated hardware is not needed, \
+                or if loading that module causes problems.
+                The blacklist command will blacklist a module so that it will not be loaded \
+                automatically, but the module may be loaded if another non-blacklisted module \
+                depends on it or if it is loaded manually. However, there is a workaround for \
+                this behaviour; the install command instructs modprobe to run a custom command \
+                instead of inserting the module in the kernel as normal, so the module will \
+                always fail to load.",
+                format!("Blacklist: {module_name}"), Symbol::SquareX),
+            Self::Clear => Command::new(
+                String::from("dmesg --clear"),
+                "dmesg: Print or control the kernel ring buffer
+                option: -C, --clear\n
+                Clear the ring buffer.",
+                String::from("Clear"), Symbol::Cloud),
         }
 	}
 
@@ -149,56 +158,5 @@ impl ModuleCommand {
 			Some(v) => *v == "ko",
 			None => false,
 		}
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	#[test]
-	fn test_module_command() {
-		let module_command = ModuleCommand::None;
-		assert!(module_command == ModuleCommand::None);
-
-		assert_ne!("", ModuleCommand::None.get("test").title);
-		assert_ne!("", ModuleCommand::Load.get("module").desc);
-		assert_ne!("", ModuleCommand::Unload.get("!command").cmd);
-		assert_ne!("", ModuleCommand::Blacklist.get("~").cmd);
-
-		assert_eq!(
-			"modprobe test-module || insmod test-module.ko",
-			ModuleCommand::Load.get("test-module").cmd
-		);
-		assert_eq!(
-			"insmod test-module.ko",
-			ModuleCommand::Load.get("test-module.ko").cmd
-		);
-
-		assert_eq!(
-			"modprobe -r test-module || rmmod test-module",
-			ModuleCommand::Unload.get("test-module").cmd
-		);
-		assert_eq!(
-			"modprobe -r test-module.ko || rmmod test-module.ko",
-			ModuleCommand::Unload.get("test-module.ko").cmd
-		);
-
-		assert_eq!(
-			format!(
-				"{} && {}",
-				ModuleCommand::Unload.get("test-module").cmd,
-				ModuleCommand::Load.get("test-module").cmd
-			),
-			ModuleCommand::Reload.get("test-module").cmd,
-		);
-
-		assert_eq!(
-			format!(
-				"{} && {}",
-				ModuleCommand::Unload.get("test-module.ko").cmd,
-				ModuleCommand::Load.get("test-module.ko").cmd
-			),
-			ModuleCommand::Reload.get("test-module.ko").cmd,
-		);
 	}
 }

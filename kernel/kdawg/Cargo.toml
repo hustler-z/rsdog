@@ -2,10 +2,7 @@
 name = "kdawg"
 version = "1.6.5"
 description = "Linux kernel manager and activity monitor"
-authors = [
-    "Orhun Parmaksız <orhunparmaksiz@gmail.com>",
-    "Rock Lo <roxhustlin@gmail.com>",
-]
+authors = [ "Orhun Parmaksız <orhunparmaksiz@gmail.com>", "Rock Lo <roxhustlin@gmail.com>", ]
 license = "GPL-3.0"
 readme = "README.md"
 documentation = "https://github.com/orhun/kmon/blob/master/README.md"
