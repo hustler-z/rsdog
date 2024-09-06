@@ -276,6 +276,7 @@ struct X on Stack
    +------------+  |
    | trait_ptr1 |--+
    +------------+
+
 -----------------------------------------------------------------
 
 An attribute is metadata applied to some module, crate or
@@ -472,6 +473,14 @@ Smart Pointer (智能指针)
 
 Using Box<T> to point to data on the heap
 
+``
+struct LinkedListNode<T> {
+    value: T,
+    next: Option<Box<LinkedListNode>>,
+}
+
+``
+
 Reference Counting (引用计数智能指针)
 
 The Rc<T> type keeps track of the number of references to
@@ -485,15 +494,38 @@ structures:
 a) Rc allows shared ownership, with multiple things
    referring to the same item. Rc is often combined with
    RefCell.
+
+             ---+-+-+-+-+-+-+-+---
+ Stack Frame    | |x| | |y| |z|
+             ---+-+-+-+-+-+-+-+---
+                   |     |   |
+                +--+-----+---+
+                |
+                V strong ref count
+        ----+-------+---------
+ Heap       |       |   ...
+        ----+-------+---------
+
+Note: For any type T, an Rc<T> value is a pointer to a
+      heap-allocated T that has had a reference count affixed to
+      it. Cloning an Rc<T> value does not copy the T; instead,
+      it simply creates another pointer to it and increments the
+      reference count.
+
 b) RefCell allows interior mutability so that internal
    state can be modified without needing a mutable
    reference. This comes at the cost of moving borrow
-   checks from compile time to runtime.
+   checks from compile time to runtime.'
+
+   .borrow()          - Immutably borrows the wrapped value
+   .borrow_mut()      - Mutably borrows the wrapped value
+
 c) Arc is the multithreading equivalent to Rc.
 d) Mutex (and RwLock) allows interior mutability in a
    multithreading environment, roughly equivalent to
    RefCell.
 e) Cell allows interior mutability for Copy types.
+
 -----------------------------------------------------------------
 
 Standard Library Types

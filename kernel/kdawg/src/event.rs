@@ -1,6 +1,6 @@
 use crate::kernel::log::KernelLogs;
 use std::io;
-use std::sync::mpsc;
+use std::sync::mpsc; /* MPSC => Multi-Producer, Single-Consumer */
 use std::thread;
 use std::time::Duration;
 use termion::event::Key;
@@ -12,6 +12,22 @@ pub enum Event<I> {
 	Kernel(String),
 	Tick,
 }
+
+/* --------------------------------------------------------------
+ * Syntax Notes
+ *
+ * Fork-Join Parallelism
+ *
+ * To fork is to start a new thread, and to join a thread is to
+ * wait for it to finish.
+ *
+ * JoinHandle - An owned permission to join on a thread (block on
+ *              its termination). A JoinHandle detaches the
+ *              associated thread when it is dropped, which means
+ *              that there is no longer any handle to the thread
+ *              and no way to join on it.
+ * --------------------------------------------------------------
+ */
 
 /* Terminal events */
 #[allow(dead_code)]
