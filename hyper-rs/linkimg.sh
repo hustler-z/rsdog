@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-RUST_SYHPER=
+HYPER_RS=
 MVM_IMAGE=
 TOOLCHAIN_LD=
 LD_FILE=
@@ -11,12 +11,12 @@ OUTPUT_FILE="a.out"
 function usage {
         cat << EOM
 Usage: ./$(basename $BASH_SOURCE) [OPTIONS]
-This script is used to link Rust_Shyper and linux image.
+This script is used to link Hyper-rs and linux image.
 It supports following options.
 OPTIONS:
-        -h | --help                             
+        -h | --help
             Displays this help
-        -i | --image      <Rust_Shyper_Path>   
+        -i | --image      <hyper_rs_path>
             Specify the hypervisor path
         -m | --mvm        <MVM_image_path>
             Specify the mvm path
@@ -26,7 +26,7 @@ OPTIONS:
             Specify the ld file path
         -s | --text-start <value>
 
-        -o | --output     <outdir>                            
+        -o | --output     <outdir>
             Creates kernel build output in <outdir>
 EOM
 }
@@ -40,7 +40,7 @@ function parse_input_param {
 				exit 0
 				;;
             -i | --image)
-				RUST_SYHPER="${2}"
+				HYPER_RS="${2}"
 				shift 2
 				;;
             -m | --mvm)
@@ -58,11 +58,11 @@ function parse_input_param {
             -s | --text-start)
                 TEXT_START="${2}"
                 shift 2
-                ;;   
+                ;;
             -o | --output)
                 OUTPUT_FILE="${2}"
                 shift 2
-                ;; 
+                ;;
 			*)
 				echo "Error: Invalid option ${1}"
 				usage
@@ -73,7 +73,7 @@ function parse_input_param {
 }
 
 function check_params {
-    if [ -z "${RUST_SYHPER}" ]; then
+    if [ -z "${HYPER_RS}" ]; then
         echo "Please enter the hypervisor image by -i"
         exit 0
     fi
@@ -100,11 +100,11 @@ function check_params {
 }
 
 function link_files {
-    echo "Linking Rust-shyper and image..."
+    echo "Linking Hyper-rs and image..."
 
     cp "${MVM_IMAGE}" vm0img
 
-    "${TOOLCHAIN_LD}" "${RUST_SYHPER}" -T "${LD_FILE}" \
+    "${TOOLCHAIN_LD}" "${HYPER_RS}" -T "${LD_FILE}" \
         --defsym TEXT_START="${TEXT_START}" -o "${OUTPUT_FILE}"
 
     if [ "${MVM_IMAGE}" != "vm0img" ]; then

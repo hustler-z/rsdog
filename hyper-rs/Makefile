@@ -40,8 +40,8 @@ endif
 TEXT_START ?= 0x83000000
 VM0_IMAGE_PATH ?= "./image/L4T"
 
-RELOCATE_IMAGE=librust_shyper.a
-IMAGE=rust_shyper
+RELOCATE_IMAGE=libhyper_rs.a
+IMAGE=hyper-rs
 
 TARGET_DIR=target/${ARCH}/${PROFILE}
 

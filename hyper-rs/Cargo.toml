@@ -1,5 +1,5 @@
 [package]
-name = "rust_shyper"
+name = "hyper-rs"
 version = "0.1.0"
 authors = [
     "Siran Li <ohmrlsr@buaa.edu.cn>",

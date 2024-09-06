@@ -305,6 +305,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "hyper-rs"
+version = "0.1.0"
+dependencies = [
+ "aarch64-cpu",
+ "buddy_system_allocator",
+ "built",
+ "cfg-if",
+ "chrono",
+ "fdt",
+ "fdt-rs",
+ "gethostname",
+ "log",
+ "memoffset 0.8.0",
+ "riscv 0.10.1 (git+https://github.com/Zera-Algorithm/riscv)",
+ "rustsbi",
+ "sbi",
+ "smccc",
+ "spin 0.9.8",
+ "tock-registers",
+ "vm-fdt",
+]
+
+[[package]]
 name = "iana-time-zone"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -574,29 +597,6 @@ source = "git+https://github.com/Zera-Algorithm/riscv#e0e9ca8d3647de8a0c9ec79803
 dependencies = [
  "critical-section",
  "embedded-hal 1.0.0-rc.1",
-]
-
-[[package]]
-name = "rust_shyper"
-version = "0.1.0"
-dependencies = [
- "aarch64-cpu",
- "buddy_system_allocator",
- "built",
- "cfg-if",
- "chrono",
- "fdt",
- "fdt-rs",
- "gethostname",
- "log",
- "memoffset 0.8.0",
- "riscv 0.10.1 (git+https://github.com/Zera-Algorithm/riscv)",
- "rustsbi",
- "sbi",
- "smccc",
- "spin 0.9.8",
- "tock-registers",
- "vm-fdt",
 ]
 
 [[package]]
