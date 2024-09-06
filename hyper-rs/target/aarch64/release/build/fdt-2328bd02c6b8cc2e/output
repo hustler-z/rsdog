@@ -1,0 +1,67 @@
+cargo:rerun-if-changed=wrapper.h
+cargo:rerun-if-changed=dtc/libfdt
+cargo:rerun-if-changed=build.rs
+TARGET = Some("aarch64")
+OPT_LEVEL = Some("3")
+HOST = Some("x86_64-unknown-linux-gnu")
+cargo:rerun-if-env-changed=CC_aarch64
+CC_aarch64 = None
+cargo:rerun-if-env-changed=TARGET_CC
+TARGET_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+RUSTC_LINKER = None
+cargo:rerun-if-env-changed=CROSS_COMPILE
+CROSS_COMPILE = Some("aarch64-none-elf-")
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+DEBUG = Some("true")
+CARGO_CFG_TARGET_FEATURE = None
+cargo:rerun-if-env-changed=CFLAGS_aarch64
+CFLAGS_aarch64 = None
+cargo:rerun-if-env-changed=TARGET_CFLAGS
+TARGET_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = Some("-fno-stack-protector -mgeneral-regs-only -fno-stack-protector -mgeneral-regs-only")
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/./mystr.o" "-c" "./mystr.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/./wrapper.o" "-c" "./wrapper.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_overlay.o" "-c" "dtc/libfdt/fdt_overlay.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt.o" "-c" "dtc/libfdt/fdt.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_wip.o" "-c" "dtc/libfdt/fdt_wip.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_empty_tree.o" "-c" "dtc/libfdt/fdt_empty_tree.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_strerror.o" "-c" "dtc/libfdt/fdt_strerror.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_addresses.o" "-c" "dtc/libfdt/fdt_addresses.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_rw.o" "-c" "dtc/libfdt/fdt_rw.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_ro.o" "-c" "dtc/libfdt/fdt_ro.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_check.o" "-c" "dtc/libfdt/fdt_check.c"
+exit status: 0
+running: "aarch64-none-elf-gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-fno-stack-protector" "-mgeneral-regs-only" "-fno-stack-protector" "-mgeneral-regs-only" "-I" "./" "-I" "dtc/libfdt" "-o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_sw.o" "-c" "dtc/libfdt/fdt_sw.c"
+exit status: 0
+cargo:rerun-if-env-changed=AR_aarch64
+AR_aarch64 = None
+cargo:rerun-if-env-changed=TARGET_AR
+TARGET_AR = None
+cargo:rerun-if-env-changed=AR
+AR = None
+cargo:rerun-if-env-changed=ARFLAGS_aarch64
+ARFLAGS_aarch64 = None
+cargo:rerun-if-env-changed=TARGET_ARFLAGS
+TARGET_ARFLAGS = None
+cargo:rerun-if-env-changed=ARFLAGS
+ARFLAGS = None
+running: ZERO_AR_DATE="1" "aarch64-none-elf-ar" "cq" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/libfdt-binding.a" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/./mystr.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/./wrapper.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_overlay.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_wip.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_empty_tree.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_strerror.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_addresses.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_rw.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_ro.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_check.o" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/dtc/libfdt/fdt_sw.o"
+exit status: 0
+running: "aarch64-none-elf-ar" "s" "/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out/libfdt-binding.a"
+exit status: 0
+cargo:rustc-link-lib=static=fdt-binding
+cargo:rustc-link-search=native=/Lit/rsdog/svers/target/aarch64/release/build/fdt-2328bd02c6b8cc2e/out

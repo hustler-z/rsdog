@@ -1,0 +1,12 @@
+/Lit/rsdog/svers/target/aarch64/release/deps/libtock_registers-7fc63594b76ee9c8.rmeta: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/fields.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/interfaces.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/macros.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/registers.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/local_register.rs
+
+/Lit/rsdog/svers/target/aarch64/release/deps/libtock_registers-7fc63594b76ee9c8.rlib: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/fields.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/interfaces.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/macros.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/registers.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/local_register.rs
+
+/Lit/rsdog/svers/target/aarch64/release/deps/tock_registers-7fc63594b76ee9c8.d: /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/lib.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/fields.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/interfaces.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/macros.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/registers.rs /root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/local_register.rs
+
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/lib.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/fields.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/interfaces.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/macros.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/registers.rs:
+/root/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tock-registers-0.8.1/src/local_register.rs:

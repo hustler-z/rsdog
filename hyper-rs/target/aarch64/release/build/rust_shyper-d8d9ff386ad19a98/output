@@ -1,0 +1,5 @@
+cargo:rustc-link-arg=-Tlinkers/aarch64.ld
+cargo:rustc-link-arg=--defsym=TEXT_START=1074266112
+cargo:rustc-env=GIT_COMMIT=2213d6c5c6dfa0ce900d750e9b1f99553c03c044
+cargo:rustc-env=BUILD_TIME=2024-08-26 21:06:50 +08:00
+cargo:rustc-env=HOSTNAME=grind
