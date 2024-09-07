@@ -1,6 +1,6 @@
 # Path
 # please make a rootfs image by yourself
-DISK = vm0.img
+DISK = extra/busybox/rootfs.ext4
 
 # Compile
 ARCH ?= aarch64
@@ -13,7 +13,7 @@ FEATURES ?=
 ifeq ($(ARCH), aarch64)
 	CROSS_COMPILE := aarch64-none-elf-
 	TEXT_START := 0x40080000
-	VM0_IMAGE_PATH := "./image/Image_vanilla"
+	VM0_IMAGE_PATH := "../kernel/out/arch/arm64/boot/Image"
 else ifeq ($(ARCH), riscv64)
 	CROSS_COMPILE := riscv64-linux-gnu-
 	TEXT_START := 0x80200000
