@@ -68,7 +68,7 @@ the value's behavior changes based on its state.
 --------------------------------------------------------------
 
     ownership                        borrowing
-            \                           /
+            \                         /
             +-------------------------+
             | Memory Safeness in Rust |
             +-------------------------+
@@ -154,6 +154,7 @@ never moves.
 
 Subtyping Lifetime creates an extensible relationship
 between two lifetimes.
+
 'subtype: 'basetype
 
 --------------------------------------------------------------
@@ -187,8 +188,8 @@ to the same location
 (b) *mut T    -  mutable raw pointer
 
 Note the asterisk * not dereference operator. here in the
-context of raw pointers, immutable means that the pointer
-can't be directly assigned to after being dereferenced.
+context of raw pointers, immutable means that the pointer can't
+be directly assigned to after being dereferenced.
 
 The lifetime of the owner must outlive the borrower (i.e.,
 the reference).
@@ -239,6 +240,8 @@ Trait Bounds - Indicate that generic code that is
 impl Trait syntax can be used in function arguments and
 return values. It allows us to work with types which
 cannot name.
+
+-----------------------------------------------------------------
 
 Trait Objects
 
@@ -307,15 +310,15 @@ The loop label - can break or continue in an outer loop.
 
 -----------------------------------------------------------------
 
-Both Option and Result provide a pair of methods that
-extract their inner value and panic! if it's absent:
+Both Option and Result provide a pair of methods that extract
+their inner value and panic! if it's absent:
 .unwrap() and .expect().
 
 
 Option<T> stores either a value of type T or nothing.
 
-unwrap will return the value in an option, or panic.
-expect is similar but takes an error message.
+unwrap will return the value in an option, or panic. expect is
+similar but takes an error message.
 
 enum Option<T> {
     None,           - Indicate failure/lack of value
@@ -323,18 +326,16 @@ enum Option<T> {
 }                     value with type T.
 
 Whereas Result<T, E> enum:
-a) Ok(value)        - Indicate operation succeeded,
-                    and wrap the value returned by
-                    operation.
-b) Err(why)         - Indicate operation failed, and
-                    wrap why which hopefully explained.
+a) Ok(value)        - Indicate operation succeeded, and wrap the
+                      value returned by operation.
+b) Err(why)         - Indicate operation failed, and wrap why
+                      which hopefully explained.
 
 ? used at the end of an expression returning a Result.
 
-This piece of syntactic sugar takes care of matching the
-Err arm, transforming the error type if necessary, and
-building the return Err(...) expression, all in a single
-character.
+This piece of syntactic sugar takes care of matching the Err arm,
+transforming the error type if necessary, and building the return
+Err(...) expression, all in a single character.
 
 -----------------------------------------------------------------
 
@@ -344,8 +345,8 @@ macro_rule! - metaprogramming (元编程)
 
 Declarative macros
 
-The arguments of a macro are prefixed by $ and type
-annotated with a designator:
+The arguments of a macro are prefixed by $ and type annotated
+with a designator:
 
 $ name : fragment-specifier
 
@@ -371,7 +372,8 @@ Repetition operators:
 1) * — indicates any number of repetitions.
 2) + — indicates any number but at least one.
 3) ? — indicates an optional fragment with zero or one
-    occurrence.
+       occurrence.
+
 -----------------------------------------------------------------
 
 
@@ -469,6 +471,7 @@ Indexing
     std::ops::IndexMut            x[y] = z, &mut x[y]
 
 -----------------------------------------------------------------
+
 Smart Pointer (智能指针)
 
 Using Box<T> to point to data on the heap
@@ -483,13 +486,12 @@ struct LinkedListNode<T> {
 
 Reference Counting (引用计数智能指针)
 
-The Rc<T> type keeps track of the number of references to
-a value to determine whether or not the value is still in
-use. If there are zero references to a value, the value
-can be cleaned up without any references becoming invalid.
+The Rc<T> type keeps track of the number of references to a value
+to determine whether or not the value is still in use. If there
+are zero references to a value, the value can be cleaned up
+without any references becoming invalid.
 
-use Rust’s smart pointers for interconnected data
-structures:
+use Rust’s smart pointers for interconnected data structures:
 
 a) Rc allows shared ownership, with multiple things
    referring to the same item. Rc is often combined with
@@ -522,8 +524,7 @@ b) RefCell allows interior mutability so that internal
 
 c) Arc is the multithreading equivalent to Rc.
 d) Mutex (and RwLock) allows interior mutability in a
-   multithreading environment, roughly equivalent to
-   RefCell.
+   multithreading environment, roughly equivalent to RefCell.
 e) Cell allows interior mutability for Copy types.
 
 -----------------------------------------------------------------
@@ -544,6 +545,7 @@ PartialOrd and Ord       <, <=, >=, >
 Operator overloading:    std::ops
 
 -----------------------------------------------------------------
+
 User-Defined Type Conversions
 
 From<T>
@@ -552,6 +554,7 @@ Into<T>
 TryInto<T>
 
 -----------------------------------------------------------------
+
 Closure (Lambda Expression)
 
 Fn* Traits
@@ -559,26 +562,53 @@ Fn* Traits
 The code that receives the closure has to accept an instance
 of one of the Fn* trauts:
 
-Fn        - consume/mutate captured values,
-            can be called multiple times, concurrently
-FnMut     - might mutate captured values
-            can be called multiple times, not concurrently
+Fn        - consume/mutate captured values, can be called
+            multiple times, concurrently
+FnMut     - might mutate captured values can be called multiple
+            times, not concurrently
 FnOnce    - may call it once, might consume captured values
+
 -----------------------------------------------------------------
 
 Explicit Type Casting - "as" and from/into
 
 >_@ Rock
 
-The as version also allows lossy conversions, whereas
-from/into do not.
+The as version also allows lossy conversions, whereas from/into
+do not.
 
-Type coercions are implicit operations that change the
-type of a value. They happen automatically at specific
-locations and are highly restricted in what types
-actually coerce.
+Type coercions are implicit operations that change the type of a
+value. They happen automatically at specific locations and are
+highly restricted in what types actually coerce.
 
 -----------------------------------------------------------------
+
+Vector in Rust
+
+The stack allocation size for every Vec is constant: 3 usize.
+
+       ptr      len      capacity
+       +--------+--------+--------+
+       | 0x0123 |      2 |      4 |
+       +--------+--------+--------+
+            |
+            v
+Heap   +--------+--------+--------+--------+
+       |    'a' |    'b' | uninit | uninit |
+       +--------+--------+--------+--------+
+                                       |
+                                       V
+                              uninitialized element
+
+The capacity of a vector is the amount of space allocated for any
+future elements that will be added onto the vector. This is not
+to be confused with the length of a vector, which specifies the
+number of actual elements within the vector. If a vector’s length
+exceeds its capacity, its capacity will automatically be
+increased, but its elements will have to be reallocated.
+
+-----------------------------------------------------------------
+
 The two most used string types in Rust are:
 a) String - stored as a vector of bytes (Vec<u8>), but
             guaranteed to always be a valid UTF-8
@@ -608,4 +638,5 @@ insert_str
 slices:
 
 string[starting index..ending index]
+
 -----------------------------------------------------------------
