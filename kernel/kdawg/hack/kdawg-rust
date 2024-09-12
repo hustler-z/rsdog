@@ -44,6 +44,12 @@ Strings, do not support copy semantics.
 
 In Rust, all scalar types have the copy trait.
 
+Rust won’t let us annotate a type with Copy if the type, or
+any of its parts, has implemented the Drop trait. If the type
+needs something special to happen when the value goes out of
+scope and we add the Copy annotation to that type, we’ll get a
+compile-time error.
+
 Implement the Clone trait when a deep copy is required.
 
 All values in Rust are stack allocated by default. Values
@@ -74,6 +80,34 @@ the value's behavior changes based on its state.
             +-------------------------+
                         |
                     lifetimes
+
+-----------------------------------------------------------------
+
+Reference
+
+Unlike a pointer, a reference is guaranteed to point to a valid
+value of a particular type for the life of that reference. It
+allow you to refer to some value without taking ownership of it.
+
+Reference             Far pointer on Stack  Data on Heap
++---------------+     +---------------+     +-------+-------+
+|    pointer    |---->|    pointer    |---->| Index | Value |
++---------------+     +---------------+     +-------+-------+
+                      |    length     |     :       :       :
+                      +---------------+     +-------+-------+
+                      |   capacity    |
+                      +---------------+
+
+The opposite of referencing by using & is dereferencing, which is
+accomplished with the dereference operator, *.
+
+Rust has a feature called automatic referencing and dereferencing
+
+when you call a method with object.something(), Rust
+automatically adds in &, &mut, or * so object matches the
+signature of the method.
+
+-----------------------------------------------------------------
 
 Ownership
 
@@ -245,6 +279,13 @@ cannot name.
 
 Trait Objects
 
+A trait object points to both an instance of a type implementing
+our specified trait and a table used to look up trait methods on
+that type at runtime. We create a trait object by specifying
+some sort of point, such as a & reference or a Box<T> smart
+pointer, then the dyn keyword, and then specifying the relevant
+trait.
+
 dyn Trait syntax - type-erased and dynamic dispatch
 
 A trait object is the other way to make use of the
@@ -392,7 +433,7 @@ Generic functions are templates for creating concrete
 functions, using type parameters.
 
 fn funcname<T>(param: T) -> T {
-let variable: T;
+    let variable: T;
 }
 
 -----------------------------------------------------------------
