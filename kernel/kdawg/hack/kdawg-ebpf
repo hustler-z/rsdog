@@ -1,0 +1,45 @@
+-----------------------------------------------------------------
+BPF does not define itself by only providing its instruction set,
+but also by offering further infrastructure around it such as
+maps which act as efficient key / value stores, helper functions
+to interact with and leverage kernel functionality, tail calls
+for calling into other BPF programs, security hardening
+primitives, a pseudo file system for pinning objects (maps,
+programs), and infrastructure for allowing BPF to be offloaded,
+for example, to a network card.
+-----------------------------------------------------------------
+
+Fundamentals
+
+<+> Compile eBPF
+
+$ clang -target bpf -Wall -O2 -c *.bpf.c -o *.bpf.o \
+        -I[path of linux headers]
+
+-----------------------------------------------------------------
+
+<+> Analysis eBPF Bytecode
+
+$ xxd -c 26 -l 416 *.bpf.o
+$ readelf --sections *.bpf.o --wide
+$ readelf -x .text *.bpf.o
+
+eBPF Instruction Encoding:
+
++--------+---------+---------+------ ~ --+--- ~ --+
+| opcode | src_reg | dst_reg | offset    | imm    |
++--------+---------+---------+------ ~ --+--- ~ --+
+|   8    |    4    |    4    |     16    |  32    |
+
+$ llvm-objdump -d *.bpf.o
+
+-----------------------------------------------------------------
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------

@@ -71,7 +71,7 @@ State Pattern (状态模式) is an object-oriented design pattern.
 The states are represented by a set of state objects, and
 the value's behavior changes based on its state.
 
---------------------------------------------------------------
+-----------------------------------------------------------------
 
     ownership                        borrowing
             \                         /
@@ -121,10 +121,9 @@ Ownership can be borrowed instead of moved. '&' Reference
     reference or any number of immutable references.
     - Think of data race cases.
 
-Lifetimes - prevent dangling references (occur when a
-            reference outlives a borrowed value, at
-            the time, the reference points to invalid
-            memory).
+Lifetimes - prevent dangling references (occur when a reference
+            outlives a borrowed value, at the time, the reference
+            points to invalid memory).
 
 A Lifetime spans the lifetime of a value.
 
@@ -146,7 +145,7 @@ fn test_lifetime() {
 Lifetime Elision
 
 a) When there is a single input lifetime, it is elided to the
-output lifetime.
+   output lifetime.
 i.e., “one in, one out” elision rule
 
 fn f(x: &T) -> (&T, &T) =>
@@ -154,26 +153,26 @@ fn f<'a>(x: &'a T) -> (&'a T, &'a T)
 
 
 b) when there are no references in the outputs from a function;
-in this case, each of the input references automatically
-gets its own lifetime, different from any of the other
-input parameters.
+  in this case, each of the input references automatically
+  gets its own lifetime, different from any of the other
+  input parameters.
 
 fn f(x: &T, y: &T, z: &U) -> u32 =>
 fn<'a, 'b, 'c>(x: &'a T, y: &'b T, z: &'c T) -> u32
 
 c) methods that use a reference to self (either &self or &mut
-self); in this case, the compiler assumes that any output
-references take the lifetime of self, as this turns out to
-be (by far) the most common situation.
+   self); in this case, the compiler assumes that any output
+   references take the lifetime of self, as this turns out to
+   be (by far) the most common situation.
 
 fn f(&self, x: T, y: &T) -> &U =>
 fn f<'a, 'b, 'c>(&'a self, x: &'b T, y: &'c T) -> &'a U
 
---------------------------------------------------------------
+-----------------------------------------------------------------
 
 Lifetime sharing
 
---------------------------------------------------------------
+-----------------------------------------------------------------
 
 If there are no input lifetimes, but the output return value
 includes a reference:
@@ -191,7 +190,7 @@ between two lifetimes.
 
 'subtype: 'basetype
 
---------------------------------------------------------------
+-----------------------------------------------------------------
 
 Anonymous Lifetime '_ can be used in places where a specific
 lifetime label is not needed.
@@ -200,7 +199,7 @@ The anonymous lifetime '_ allows you to mark an elided
 lifetime as being present, without having to fully restore all
 of the lifetime names.
 
---------------------------------------------------------------
+-----------------------------------------------------------------
 
 Rust has two types of pointers: safe pointers and raw pointers.
 
@@ -212,13 +211,13 @@ with the original binding.
 
 Raw pointers
 1) Are allowed to ignore the borrowing rules by having both
-immutable and mutable pointers or multiple mutable pointers
-to the same location
-2) Aren’t guaranteed to point to valid memory
+   immutable and mutable pointers or multiple mutable pointers
+   to the same location
+2) Aren't guaranteed to point to valid memory
 3) Are allowed to be null
-4) Don’t implement any automatic cleanup
+4) Don't implement any automatic cleanup
 
-(a)const T  -  immutable raw pointer
+(a) const T   -  immutable raw pointer
 (b) *mut T    -  mutable raw pointer
 
 Note the asterisk * not dereference operator. here in the
@@ -227,12 +226,6 @@ be directly assigned to after being dereferenced.
 
 The lifetime of the owner must outlive the borrower (i.e.,
 the reference).
-
-Deref and DerefMut Traits - Dereferencing Operators * and .
-
-Deref
-
-DerefMut - Dereference Mutably
 
 deref coercion ()
 
@@ -267,13 +260,43 @@ In Rust, can define a trait as being a superset of another
 trait.
 
 Trait Bounds - Indicate that generic code that is
-            parameterized by some type T can be used only
-            when that type T implements some specific
-            trait.
+               parameterized by some type T can be used only
+               when that type T implements some specific
+               trait.
 
-impl Trait syntax can be used in function arguments and
-return values. It allows us to work with types which
-cannot name.
+[Marker Traits]
+
+A bound like T: Sized requires T to be a type whose size is known
+at compile time.
+
+#################################################################
+Rust also has a few unsized types, a pointer to an unsized value
+is always a fat pointer, two words wide: a pointer to a slice also
+carries the slice’s length, and a trait object also carries a
+pointer to a vtable of method implementations.
+
+S<T: ?Sized>
+
+Here ?Sized syntax means "Not necessary Sized".
+
+Deref and DerefMut Traits - Dereferencing Operators * and .
+
+Deref
+
+DerefMut - Dereference Mutably
+
+
+AsRef
+When a type implements AsRef<T>, that means we can borrow a &T
+from it efficiently.
+
+Borrow   - similar to AsRef
+
+AsMut    - Mutable References
+#################################################################
+
+impl Trait syntax can be used in function arguments and return
+values. It allows us to work with types which cannot name.
 
 -----------------------------------------------------------------
 
@@ -304,9 +327,9 @@ struct or a tiny enum—so there’s no way to allocate the right
 amount of space for a bare trait object.
 
 Trait objects are fat pointers that combine a pointer to the
-underlying concrete item with a pointer to a vtable that in
-turn holds function pointers for all of the trait
-implementation’s methods.
+underlying concrete item with a pointer to a vtable that in turn
+holds function pointers for all of the trait implementation’s
+methods.
 
 struct X on Stack
    +------------+
@@ -329,7 +352,7 @@ item.
 #[outer_attribute]  - apply to the item immediately following
                       it.
 #![inner_attribute] - apply to enclosing item (typically a
-                       module or a crate).
+                      module or a crate).
 
 #[cfg(...)]         - attribute position
 
@@ -341,8 +364,8 @@ loop
 break    - exit the loop early
 continue - immediately start the next iteration
 
-Both continue and break can optionally take a label
-argument which is used to break out of nested loop.
+Both continue and break can optionally take a label argument
+which is used to break out of nested loop.
 
 The loop label - can break or continue in an outer loop.
 'label: while
@@ -365,6 +388,17 @@ enum Option<T> {
     None,           - Indicate failure/lack of value
     Some(T),        - a tuple struct that wraps a
 }                     value with type T.
+
+.unwrap()                - Returns the contained Some value,
+                           consuming the Self value.
+.unwrap_or(default)      - Returns the contained Some value or a
+                           provided default.
+.unwrap_or_else(closure) - Returns the contained Some value or
+                           computes it from a closure.
+.unwrap_or_default()     - Returns the contained Some value or
+                           a default.
+
+-----------------------------------------------------------------
 
 Whereas Result<T, E> enum:
 a) Ok(value)        - Indicate operation succeeded, and wrap the
@@ -391,8 +425,8 @@ with a designator:
 
 $ name : fragment-specifier
 
-Matches a Rust syntax fragment of the kind specified and
-binds it to the metavariable $name.
+Matches a Rust syntax fragment of the kind specified and binds it
+to the metavariable $name.
 
 1)  block
 2)  expr
@@ -598,6 +632,8 @@ TryInto<T>
 
 Closure (Lambda Expression)
 
+ | closure arguments | { expression }
+
 Fn* Traits
 
 The code that receives the closure has to accept an instance
@@ -651,12 +687,10 @@ increased, but its elements will have to be reallocated.
 -----------------------------------------------------------------
 
 The two most used string types in Rust are:
-a) String - stored as a vector of bytes (Vec<u8>), but
-            guaranteed to always be a valid UTF-8
-            sequence.
-b) &str   - a slice (&[u8]) that always points to a
-            valid UTF-8 sequence, and can be used to
-            view into a String.
+a) String - stored as a vector of bytes (Vec<u8>), but guaranteed
+            to always be a valid UTF-8 sequence.
+b) &str   - a slice (&[u8]) that always points to a valid UTF-8
+            sequence, and can be used to view into a String.
 
 &[T] is a view into Vec<T>
 
