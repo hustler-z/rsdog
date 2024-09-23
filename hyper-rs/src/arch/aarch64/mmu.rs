@@ -272,6 +272,11 @@ pub extern "C" fn pt_populate(lvl1_pt: &mut PageTables, lvl2_pt: &mut PageTables
 #[no_mangle]
 // #[link_section = ".text.boot"]
 /// init mmu, set mmu-related registers
+/// -------------------------------------------------------------
+/// mair_el2
+/// ttbr0_el2
+/// tcr_el2
+/// -------------------------------------------------------------
 pub extern "C" fn mmu_init(pt: &PageTables) {
     use cortex_a::registers::*;
     MAIR_EL2.write(

@@ -135,6 +135,31 @@
  * This gives us an approximation of pressure that is practical
  * cost-wise, yet way more sensitive and accurate than periodic
  * sampling of the aggregate task states would be.
+ *
+ * --------------------------------------------------------------
+ * @Hustler
+ *
+ * PSI (Pressure Stall Information 压力阻塞信息)
+ *     由于资源(CPU, memory和IO)压力造成的任务执行卡顿(stall,暂缓/搁置)
+ *
+ *                    |-- FULL ->|
+ * Task A |-----------|xxxxxxxxxx|----------------|
+ *
+ *        |-------- SOME ------->|
+ * Task B |xxxxxxxxxxxxxxxxxxxxxx|----------------|
+ *
+ * SOME => 至少有一个任务在某个资源上阻塞的时间占比
+ * FULL => 所有的非idle任务同时被阻塞的时间占比
+ *
+ * 资源FULL和SOME状态表
+ * ----------------------------------------------
+ *                   FULL                   SOME
+ * ----------------------------------------------
+ * CPU               NA                     YES
+ * memory            YES                    YES
+ * IO                YES                    YES
+ * ----------------------------------------------
+ *
  */
 
 static int psi_bug __read_mostly;

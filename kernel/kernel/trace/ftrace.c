@@ -45,6 +45,32 @@
 #include "trace_output.h"
 #include "trace_stat.h"
 
+/**
+ * --------------------------------------------------------------
+ * @Hustler
+ *
+ * Ftrace is an internal tracer designed to help out developers
+ * and designers of systems to find what is going on inside the
+ * kernel. It can be used for debugging or analyzing latencies
+ * and performance issues that take place outside of user-space.
+ *
+ * Although ftrace is typically considered the function tracer,
+ * it is really a framework of several assorted tracing
+ * utilities. There's latency tracing to examine what occurs
+ * between interrupts disabled and enabled, as well as for
+ * preemption and from a time a task is woken to the task is
+ * actually scheduled in.
+ *
+ * One of the most common uses of ftrace is the event tracing.
+ * Throughout the kernel is hundreds of static event points that
+ * can be enabled via the tracefs file system to see what is
+ * going on in certain parts of the kernel.
+ *
+ * Check arch/arm64/kernel/entry-ftrace.S for more infos.
+ *
+ * --------------------------------------------------------------
+ */
+
 /* Flags that do not get reset */
 #define FTRACE_NOCLEAR_FLAGS	(FTRACE_FL_DISABLED | FTRACE_FL_TOUCHED | \
 				 FTRACE_FL_MODIFIED)

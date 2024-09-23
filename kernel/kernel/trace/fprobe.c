@@ -14,6 +14,21 @@
 
 #include "trace.h"
 
+/**
+ * --------------------------------------------------------------
+ * @Hustler
+ *
+ * Fprobe is a function entry/exit probe mechanism based on
+ * ftrace. Instead of using ftrace full feature, if you only
+ * want to attach callbacks on function entry and exit,
+ * similar to the kprobes and kretprobes, you can use fprobe.
+ * Compared with kprobes and kretprobes, fprobe gives faster
+ * instrumentation for multiple functions with single handler.
+ *
+ * Fprobe - ftrace的简化版(只关注函数入口和退出).
+ * --------------------------------------------------------------
+ */
+
 struct fprobe_rethook_node {
 	struct rethook_node node;
 	unsigned long entry_ip;

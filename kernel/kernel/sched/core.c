@@ -10015,6 +10015,49 @@ void __init sched_init(void)
 		rq->nr_running = 0;
 		rq->calc_load_active = 0;
 		rq->calc_load_update = jiffies + LOAD_FREQ;
+		/**
+		 * ------------------------------------------------------
+		 * @Hustler
+		 *
+		 * 衡量调度性能的指标
+		 *
+		 * (1) CPU利用率
+		 * (2) 吞吐量   => 单位时间内系统能完成的任务数
+		 * (3) 周转时间 = 实际执行时间 + 等待系统资源时间
+		 * (4) 响应时间 => 提交请求到首次响应的时间
+		 * ------------------------------------------------------
+		 * 多核调度需要解决的问题
+		 *
+		 * (1) 缓存一致性
+		 * (2) 缓存亲和度
+		 * (3) 核间数据共享
+		 * (4) 负载均衡 (Load Balance)
+		 * ------------------------------------------------------
+		 * Initialize Runqueues of different Scheduling Classes
+		 *
+		 * (a) Stop Task Scheduling Class
+		 *     停机调度类 - (migration/<cpu id> 迁移线程)
+		 *
+		 * (b) Deadline Scheduling Class
+		 *     限时调度类
+		 *     a) SCHED_DEADLINE
+		 *
+		 * (c) RT (Real Time Scheduling Class)
+		 *     实时调度类
+		 *     a) SCHED_RR   (Round Robin)
+		 *        轮转调度算法
+		 *     b) SCHED_FIFO (FCFS - First Come First Served)
+		 *
+		 * (d) CFS (Completely Fair Scheduler)
+		 *     公平调度类 (标准轮流分时调度策略 fair time slices)
+		 *     a) SCHED_NORMAL
+		 *     b) SCHED_BATCH
+		 *
+		 * (e) Idle Scheduling Class
+		 *     空闲调度类
+		 *     a) SCHED_IDLE
+		 * ------------------------------------------------------
+		 */
 		init_cfs_rq(&rq->cfs);
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);

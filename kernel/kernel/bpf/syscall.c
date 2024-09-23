@@ -5790,6 +5790,22 @@ static int __sys_bpf(int cmd, bpfptr_t uattr, unsigned int size)
 	return err;
 }
 
+/*
+ * --------------------------------------------------------------
+ * @Hustler
+ *
+ * The whole bpf things can be considered as a virtual machine,
+ * running code in an isolated environment.
+ *
+ * Notes:
+ *
+ * The operation to be performed by the bpf() system call is
+ * determined by the cmd argument. Each operation takes an
+ * accompanying argument, provided via attr, which is a pointer
+ * to a union of type bpf_attr.
+ *
+ * --------------------------------------------------------------
+ */
 SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, size)
 {
 	return __sys_bpf(cmd, USER_BPFPTR(uattr), size);

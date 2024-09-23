@@ -20,6 +20,17 @@
  * 0x9xx: tag-based KASAN trap (allowed values 0x900 - 0x9ff)
  * 0x55xx: Undefined Behavior Sanitizer traps ('U' << 8)
  * 0x8xxx: Control-Flow Integrity traps
+ *
+ * --------------------------------------------------------------
+ * @Hustler
+ *
+ * Breakpoint instruction (断点指令)
+ *
+ * A BRK instruction generates a Breakpoint Instruction exception.
+ * The PE records the exception in ESR_ELx, using the EC value
+ * 0x3C, and captures the value of the immediate argument in
+ * ESR_ELx.ISS.
+ * --------------------------------------------------------------
  */
 #define KPROBES_BRK_IMM			0x004
 #define UPROBES_BRK_IMM			0x005

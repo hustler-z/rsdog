@@ -142,6 +142,8 @@ CPU_BE( tbz	x19, #SCTLR_ELx_EE_SHIFT, 1f	)
 	tst	x19, #SCTLR_ELx_C		// Z := (C == 0)
 	and	x19, x19, #SCTLR_ELx_M		// isolate M bit
 	/* ---------------------------------------------------------------
+	 * @Hustler
+	 *
 	 * csel <xd>, <xn>, <xm>, <cond>
 	 *
 	 * If the condition is true, Conditional Select writes the value
@@ -481,12 +483,21 @@ SYM_FUNC_END(set_cpu_boot_mode_flag)
 SYM_FUNC_START(__enable_mmu)
 	mrs	x3, ID_AA64MMFR0_EL1
 	/* ---------------------------------------------------------------
+	 * @Hustler
+	 *
 	 * ubfx <xd>, <xn>, #<lsb>, #<width>
 	 *
 	 * Unsigned Bitfield Extract copies a bitfield of <width> bits
 	 * starting from bit position <lsb> in the source register to the
 	 * least significant bits of the destination register, and sets
 	 * destination bits above the bitfield to zero.
+	 *   |<-- width -->|
+	 * ~ |lsb| ... |   |             - source register
+	 *
+	 *      \        \ (copy)
+	 *
+	 * ~ ~ |   | ... | 0 | <-        - destination register
+	 *     |<-- width -->|
 	 * ---------------------------------------------------------------
 	 */
 	ubfx	x3, x3, #ID_AA64MMFR0_EL1_TGRAN_SHIFT, 4
