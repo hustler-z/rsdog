@@ -515,27 +515,6 @@ int tracepoint_probe_register_prio(struct tracepoint *tp, void *probe,
 EXPORT_SYMBOL_GPL(tracepoint_probe_register_prio);
 
 /**
- * --------------------------------------------------------------
- * @Hustler
- *
- * 注册对应tracepoint的钩子函数(hook function => probe), 顾名思义，
- * 当trace点执行时，就会执行对应的钩子函数.
- *
- * A tracepoint placed in code provides a hook to call a function
- * (probe) that you can provide at runtime. A tracepoint can be
- * “on” (a probe is connected to it) or “off” (no probe is
- * attached). When a tracepoint is “off” it has no effect, except
- * for adding a tiny time penalty (checking a condition for a
- * branch) and space penalty (adding a few bytes for the function
- * call at the end of the instrumented function and adds a data
- * structure in a separate section). When a tracepoint is “on”,
- * the function you provide is called each time the tracepoint is
- * executed, in the execution context of the caller. When the
- * function provided ends its execution, it returns to the caller
- * (continuing from the tracepoint site).
- *
- * --------------------------------------------------------------
- *
  * tracepoint_probe_register -  Connect a probe to a tracepoint
  * @tp: tracepoint
  * @probe: probe handler

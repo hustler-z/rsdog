@@ -455,31 +455,8 @@ SYM_FUNC_START(__cpu_setup)
 	tlbi	vmalle1				// Invalidate local TLB
 	dsb	nsh
 
-	/*
-	 * ----------------------------------------------------------
-	 * @Hustler
-	 *
-	 * CPACR_EL1 - Architectural Feature Access Control Register
-	 *             Controls access to trace, SVE, and Advanced
-	 *             SIMD and floating-point functionality.
-	 *
-	 * FPEN [21:20]
-	 * 0b11 - Ain't cause execution of any instructions to be
-	 *        trapped.
-	 * ----------------------------------------------------------
-	 */
 	msr	cpacr_el1, xzr			// Reset cpacr_el1
 	mov	x1, #1 << 12			// Reset mdscr_el1 and disable
-	/* ----------------------------------------------------------
-	 * MDSCR_EL1 - Monitor Debug System Control Register
-	 *             Main control register for the debug implemen-
-	 *             tation.
-	 * TDCC [12]
-	 * 0b1  - EL0 using AArch64: EL0 accesses to the AArch64 DCC
-	 *        registers are trapped.
-	 *        DCC (Debug Communication Channel)
-	 * ----------------------------------------------------------
-	 */
 	msr	mdscr_el1, x1			// access to the DCC from EL0
 	reset_pmuserenr_el0 x1			// Disable PMU access from EL0
 	reset_amuserenr_el0 x1			// Disable AMU access from EL0
@@ -523,24 +500,7 @@ alternative_else_nop_endif
 	orr	tcr, tcr, #TCR_HA		// hardware Access flag update
 1:
 #endif	/* CONFIG_ARM64_HW_AFDBM */
-	/*
-	 * ----------------------------------------------------------
-	 * @Hustler
-	 *
-	 * MAIR_EL1 - Memory Attribute Indirection Register
-	 *            Provides the memory attribute encodings
-	 *            corresponding to the possible AttrIndx values
-	 *            in a Long-descriptor format translation table
-	 *            entry for stage translations at EL1.
-	 * ----------------------------------------------------------
-	 */
 	msr	mair_el1, mair
-	/* ----------------------------------------------------------
-	 * TCR_EL1 - Translation Control Register
-	 *           The control register for stage 1 of the EL1 & 0
-	 *           translation regime.
-	 * ----------------------------------------------------------
-	 */
 	msr	tcr_el1, tcr
 
 	mrs_s	x1, SYS_ID_AA64MMFR3_EL1

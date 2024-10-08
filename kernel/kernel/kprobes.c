@@ -45,69 +45,6 @@
 #include <asm/errno.h>
 #include <linux/uaccess.h>
 
-/**
- * --------------------------------------------------------------
- * @Hustler
- *
- * Kprobes enables you to dynamically break into any kernel
- * routine and collect debugging and performance information
- * non-disruptively. You can trap at almost any kernel code
- * address, specifying a handler routine to be invoked when
- * the breakpoint is hit.
- *
- * (a) kprobes
- * (b) kretprobes
- *
- * A kprobe can be inserted on virtually any instruction in
- * the kernel. A return probe fires when a specified function
- * returns.
- *
- * When a kprobe is registered, Kprobes makes a copy of the
- * probed instruction and replaces the first byte(s) of the
- * probed instruction with a breakpoint instruction.
- * When a CPU hits the breakpoint instruction, a trap occurs,
- * the CPU’s registers are saved, and control passes to Kprobes
- * via the notifier_call_chain mechanism. Kprobes executes the
- * “pre_handler” associated with the kprobe, passing the handler
- * the addresses of the kprobe struct and the saved registers.
- *
- * Next, Kprobes single-steps its copy of the probed instruction.
- * (It would be simpler to single-step the actual instruction in
- * place, but then Kprobes would have to temporarily remove the
- * breakpoint instruction. This would open a small time window
- * when another CPU could sail right past the probepoint.)
- *
- * After the instruction is single-stepped, Kprobes executes the
- * “post_handler,” if any, that is associated with the kprobe.
- * Execution then continues with the instruction following the
- * probepoint.
- *
- * register_kprobe()
- *        |
- *        +--> register_aggr_kprobe()
- *                 |
- *                 +--> arm_kprobe()
- *                          |
- *                          +--> __arm_kprobe()
- *                                    |
- *                                    +--> arch_arm_kprobe()
- *
- *   struct kprobe                |
- * +--------------+      +-> pre_handler
- * |    ...       |     /         |
- * | symbol_name  -------+        |
- * |    ...       |   /   \       |
- * | pre_handler  ---+    <probed function> [ e.g. do_fork() ]
- * | post_handler ---+            |
- * |    ...       |   \           |
- * +--------------+    \          |
- *                      +--> post_handler
- *                                |
- *                                V
- *
- * --------------------------------------------------------------
- */
-
 #define KPROBE_HASH_BITS 6
 #define KPROBE_TABLE_SIZE (1 << KPROBE_HASH_BITS)
 
@@ -1002,7 +939,7 @@ static void unoptimize_all_kprobes(void)
 
 static DEFINE_MUTEX(kprobe_sysctl_mutex);
 static int sysctl_kprobes_optimization;
-static int proc_kprobes_optimization_handler(struct ctl_table *table,
+static int proc_kprobes_optimization_handler(const struct ctl_table *table,
 					     int write, void *buffer,
 					     size_t *length, loff_t *ppos)
 {

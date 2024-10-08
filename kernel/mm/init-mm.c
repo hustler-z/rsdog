@@ -28,19 +28,6 @@ const struct vm_operations_struct vma_dummy_vm_ops;
  *
  * Since there is only one init_mm in the entire system, keep it simple
  * and size this cpu_bitmask to NR_CPUS.
- *
- * --------------------------------------------------------------
- * @Hustler
- *
- * init_mm => mainly used just at bootup when no real VM has yet
- *            been created.
- *
- * 每个进程或内核线程都由一个task_struct来管理, task_struct结构中有一个
- * struct mm_strcut数据结构指针, 用来管理任务的虚拟地址空间. 而内核本身
- * 作为一个进程, 也有对应的mm_struct.
- *
- * init_mm是全系统第一个mm_struct，它记录了内核进程的内存信息.
- * --------------------------------------------------------------
  */
 struct mm_struct init_mm = {
 	.mm_mt		= MTREE_INIT_EXT(mm_mt, MM_MT_FLAGS, init_mm.mmap_lock),

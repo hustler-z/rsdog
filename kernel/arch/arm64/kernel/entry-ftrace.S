@@ -181,15 +181,6 @@ SYM_CODE_END(ftrace_stub_direct_tramp)
 #else /* CONFIG_DYNAMIC_FTRACE_WITH_ARGS */
 
 /*
- * --------------------------------------------------------------
- * @Hustler
- *
- * Ftrace的原理
- *
- * 打开内核配置选项CONFIG_FUNCTION_TRACER后，会增加-pg编译选项，该选项
- * 会在每个函数入口处，插入bl _mcount跳转指令.
- * --------------------------------------------------------------
- *
  * Gcc with -pg will put the following code in the beginning of each function:
  *      mov x0, x30
  *      bl _mcount

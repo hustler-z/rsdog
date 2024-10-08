@@ -141,17 +141,6 @@ CPU_LE( tbnz	x19, #SCTLR_ELx_EE_SHIFT, 1f	)
 CPU_BE( tbz	x19, #SCTLR_ELx_EE_SHIFT, 1f	)
 	tst	x19, #SCTLR_ELx_C		// Z := (C == 0)
 	and	x19, x19, #SCTLR_ELx_M		// isolate M bit
-	/* ---------------------------------------------------------------
-	 * @Hustler
-	 *
-	 * csel <xd>, <xn>, <xm>, <cond>
-	 *
-	 * If the condition is true, Conditional Select writes the value
-	 * of the first source register to the destination register. If
-	 * the condition is false, it writes the value of the second
-	 * source register to the destination register.
-	 * ---------------------------------------------------------------
-	 */
 	csel	x19, xzr, x19, eq		// clear x19 if Z
 	ret
 
@@ -482,24 +471,6 @@ SYM_FUNC_END(set_cpu_boot_mode_flag)
 	.section ".idmap.text","a"
 SYM_FUNC_START(__enable_mmu)
 	mrs	x3, ID_AA64MMFR0_EL1
-	/* ---------------------------------------------------------------
-	 * @Hustler
-	 *
-	 * ubfx <xd>, <xn>, #<lsb>, #<width>
-	 *
-	 * Unsigned Bitfield Extract copies a bitfield of <width> bits
-	 * starting from bit position <lsb> in the source register to the
-	 * least significant bits of the destination register, and sets
-	 * destination bits above the bitfield to zero.
-	 *   |<-- width -->|
-	 * ~ |lsb| ... |   |             - source register
-	 *
-	 *      \        \ (copy)
-	 *
-	 * ~ ~ |   | ... | 0 | <-        - destination register
-	 *     |<-- width -->|
-	 * ---------------------------------------------------------------
-	 */
 	ubfx	x3, x3, #ID_AA64MMFR0_EL1_TGRAN_SHIFT, 4
 	cmp     x3, #ID_AA64MMFR0_EL1_TGRAN_SUPPORTED_MIN
 	b.lt    __no_granule_support
@@ -522,16 +493,6 @@ SYM_FUNC_START(__cpu_secondary_check52bitva)
 	cbnz	x0, 2f
 #else
 	mrs	x0, id_aa64mmfr0_el1
-	/* ---------------------------------------------------------------
-	 * sbfx <xd>, <xn>, #<lsb>, #<width>
-	 *
-	 * Signed Bitfield Extract copies a bitfield of <width> bits
-	 * starting from bit position <lsb> in the source register to the
-	 * least significant bits of the destination register, and sets
-	 * destination bits above the bitfield to a copy of the most
-	 * significant bit of the bitfield.
-	 * ---------------------------------------------------------------
-	 */
 	sbfx	x0, x0, #ID_AA64MMFR0_EL1_TGRAN_SHIFT, 4
 	cmp	x0, #ID_AA64MMFR0_EL1_TGRAN_LPA2
 	b.ge	2f
